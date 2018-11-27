@@ -2,8 +2,6 @@
 Spike - FAQs and Knowledge Base
 *******************************
 
-.. sectnum::
-
 .. contents:: The tiny table of contents
 
 General
