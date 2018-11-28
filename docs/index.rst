@@ -14,11 +14,11 @@ From alerting you of high and low glucose values to sharing them to a plethora o
    :glob:
    :caption: Introduction to Spike (Overview)
 
-   docs/Introduction Introduction
+   Introduction Introduction
  
 .. toctree::
    :maxdepth: 2
    :glob:
    :caption: FAQs and Knowledge Base
 
-   docs/FAQ FAQs and Knowledge Base
+   FAQ FAQs and Knowledge Base
