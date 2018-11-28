@@ -1,31 +1,34 @@
-*******************************
+===============================
 Spike - FAQs and Knowledge Base
-*******************************
+===============================
 
 .. contents:: The tiny table of contents
 
 General
-#######
+=======
 
 Spike is a phone app, and its users are a welcoming community with the interests of its users at its heart. This document has been written by volunteers who use and love Spike in a bid to help people access the app to its potential. It does not cover very specific issues – if your problem is bespoke or unusual and not covered in this document, please search the Facebook site by typing a keyword in to the “Search” box in the group’s page. If you have an area that you think needs to be included in this document, please tag Kathy Bliss on the Facebook site with details.
 
 Please remember that Spike is not a commercial product. It is designed, developed and managed by volunteers doing the best they can to accommodate everyone at the expense of having their free time and social lives severely affected so that they can dedicate more time helping others. The only thing they ask in return is politeness and patience. 
 
 Invites
-#######
+=======
+.. _my-label:
 
-**How do I access Spike?**
+How do I access Spike?
+----------------------
 
 Spike is not available on the Apple App Store, instead you can download Spike through App Centre via an invitation you can request from the Spike website.      
 
 Fill in the form at https://spike-app.com with an email address that you can access from your phone.  Within a few moments, you should receive an invitation email containing details of how to install the Spike app. Once you’ve received your invitation email, the installation process to follow is detailed in a wiki that can be found here.  Follow the instructions to the letter – they are fully comprehensive and everything you need to do is covered.  Common mistakes are trying to register your device (you don’t need to…) or missing the step about setting up your phone to trust spike’s certificate.
 
-**How long should I expect to wait for my invite?**
+How long should I expect to wait for my invite?
+-----------------------------------------------
 
 ALL invites are sent automatically and so should be with you a few moments after your request.  If there’s nothing in your inbox, then please check your junk mail folder.  Occasionally, some email servers block the invitation email from spike before it reaches your account.  If this happens, please use a different email address that you ae able to access from your phone.  This isn’t something the Spike Team can change I’m afraid.  
 
 What devices are compatible? 
-############################
+============================
 
 - Phones with Spike – iPhone 4s, 5, 5c, 5s, 6, 6 Plus, 6s, 6s Plus, SE, 7, 7 Plus, 8, 8 Plus, X, Xs and Xr.  
 - iPadswith Spike for iPad – works with all iPads apart from iPad 1.  
@@ -34,7 +37,7 @@ What devices are compatible?
 - Other Watches: the following watches can be used with Spike: Pebble, Fitbit Iconic and Versa, Garmin. For further instructions, go to the app and click on Settings > Integration > Internal HTTP Server. This list is not exhaustive – please do a search of the Facebook group for your watch model to see if it’s supported.  
 
 Chart & Display
-###############
+===============
 
 **Can I adapt the Chart to suit my needs?**
 
@@ -97,7 +100,7 @@ Disable portrait lock in the settings of your iPhone (not in Spike), then in Spi
 So long as it’s within the last 24 hours, then yes.  Tap the three dots in the top right hand corner and select ‘Readings’.  Wait for the data to render and then scroll down to the reading(s) you wish to delete.  Tap the trash can to remove and if you’re sure tap ‘Yes’ to the warning displayed.
 
 Sensors
-########
+========
 
 
 **What sensors does Spike support?**
@@ -126,14 +129,14 @@ When you add a sensor to your body, there is some local site trauma.  This settl
 **How can I avoid erratic readings at start / end of sensor life?**
 
 Transmitters
-############
+============
 
 **What transmitters will work with Spike?**
 
 TODO
 
 Alarms
-######
+======
 
 **What alarms can be set?**
 
@@ -150,7 +153,7 @@ Go to Menu > Settings > Alarms > Alert Types. Click on “Add Alert” and name 
 - Check that you are not in “Do Not Disturb” Mode
 
 Calibration
-###########
+===========
 
 **How do I calibrate?**
 
@@ -171,7 +174,7 @@ No, you do not need to delete. Spike will know that you have changed the sensor 
 Ideally yes, but unfortunately life isn’t like that. To get going with a new sensor, calibrate when requested to do so upon starting your sensor.  Then, if you calibrate again when glucose readings are level and in range.
 
 Accuracy / Predictions
-######################
+======================
 
 **How accurate is Spike?**
 
@@ -186,7 +189,7 @@ Deleting all Calibrations (Menu > Sensor  > Calibrations > Delete all Calibratio
 Not yet, but will hopefully be available in future updates
 
 Disconnection / Suspension / Battery Life
-#########################################
+=========================================
 
 **How can I avoid losing readings from my transmitter and/or preserve battery life?**
 
@@ -211,17 +214,17 @@ TODO
 All treatments are automatically added to Spike's chart. For detailed information about inputting treatments on Spike, please refer to https://github.com/SpikeApp/Spike/wiki/Treatments.
 
 Widgets and Full Screen
-#######################
+=======================
 
 TODO
 
 Speech
-######
+======
 
 TODO
 
 Integration
-###########
+===========
 
 IFTTT
 *****
@@ -251,12 +254,12 @@ Loop Offline
 TODO
 
 Watches
-#######
+=======
 
 TODO
 
 Follower Mode / Nightscout
-##########################
+==========================
 
 **What is Follower mode?**
 
@@ -292,7 +295,7 @@ Miguel also briefly explained it when he presented Spike at the DiabetesMine eve
 TODO Link
 
 Donations
-#########
+=========
 
 Spike is a free app and it is Miguel’s intention to keep it that way. It survives on contributions from the diabetic community and future features will require purchasing 3rd party libraries.
 
