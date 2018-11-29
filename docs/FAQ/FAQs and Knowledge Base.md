@@ -1,7 +1,7 @@
 General
 -------
 
-Spike is a phone app, and its users are a welcoming community with the interests of its users at its heart. This document has been written by volunteers who use and love Spike in a bid to help people access the app to its potential. It does not cover very specific issues – if your problem is bespoke or unusual and not covered in this document, please search the Facebook site by typing a keyword in to the “Search” box in the group’s page. If you have an area that you think needs to be included in this document, please tag Kathy Bliss on the Facebook site with details.
+Spike is an iOS phone app, and its users are a welcoming community with the interests of its users at its heart. This document has been written by volunteers who use and love Spike in a bid to help people access the app to its potential. It does not cover very specific issues – if your problem is bespoke or unusual and not covered in this document, please search the Facebook site by typing a keyword in to the “Search” box in the group’s page. If you have an area that you think needs to be included in this document, please tag Kathy Bliss or one of the moderators on the Facebook site with details.
 
 Please remember that Spike is not a commercial product. It is designed, developed and managed by volunteers doing the best they can to accommodate everyone at the expense of having their free time and social lives severely affected so that they can dedicate more time helping others. The only thing they ask in return is politeness and patience.
 
@@ -12,7 +12,7 @@ Invites
 
 Spike is not available on the Apple App Store, instead you can download Spike through App Centre via an invitation you can request from the Spike website.
 
-Fill in the form at <https://spike-app.com> with an email address that you can access from your phone. Within a few moments, you should receive an invitation email containing details of how to install the Spike app. Once you’ve received your invitation email, the installation process to follow is detailed in a wiki that can be found here. Follow the instructions to the letter – they are fully comprehensive and everything you need to do is covered. Common mistakes are trying to register your device (you don’t need to…) or missing the step about setting up your phone to trust spike’s certificate.
+Fill in the form at https://spike-app.com/#installation with an email address that you can access from your phone. Yahoo blocks invitations, so make sure you use an email address that is not hosted by Yahoo. Within a few moments, you should receive an invitation email containing details of how to install the Spike app. Once you’ve received your invitation email, the installation process to follow is detailed in a wiki that can be found here: https://github.com/SpikeApp/Spike/wiki/Installing-Spike-Using-App-Center. Follow the instructions to the letter – they are fully comprehensive and everything you need to do is covered. Common mistakes are trying to register your device (you don’t need to…) or missing the step about setting up your phone to trust Spike’s certificate.
 
 ### How long should I expect to wait for my invite?
 
@@ -21,36 +21,37 @@ ALL invites are sent automatically and so should be with you a few moments after
 What devices are compatible?
 ----------------------------
 
--   Phones with Spike – iPhone 4s, 5, 5c, 5s, 6, 6 Plus, 6s, 6s Plus, SE, 7, 7 Plus, 8, 8 Plus, X, Xs and Xr.
--   iPadswith Spike for iPad – works with all iPads apart from iPad 1.
--   iPods with Spike– iPod Touch 5th & 6th Gen.
--   Apple Watches – all apple watches are supported ( support can be found within the Spike app Menu > Settings > Watch)
--   Other Watches: the following watches can be used with Spike: Pebble, Fitbit Iconic and Versa, Garmin. For further instructions, go to the app and click on Settings > Integration > Internal HTTP Server. This list is not exhaustive – please do a search of the Facebook group for your watch model to see if it’s supported.
+* **iPhones**: Works with iPhone 4s, 5, 5c, 5s, 6, 6 Plus, 6s, 6s Plus, SE, 7, 7 Plus, 8, 8 Plus, X, Xs and Xr.
+* **iPads**: Works with all iPads apart from iPad 1.
+* **iPods**: Works with iPod Touch 5th & 6th Gen.
+* **Apple Watches**: All Apple watches are supported (support can be found within the Spike app Menu > Settings > Watch)
+* **Other Watches**: The following watches can be used with Spike: Pebble, Fitbit Iconic and Versa, Garmin. For further instructions, go to the app and click on Settings > Integration > Internal HTTP Server. This list is not exhaustive – please do a search of the Facebook group for your watch model to see if it’s supported.
 
 Chart & Display
 ---------------
 
 ### Can I adapt the Chart to suit my needs?
 
-Yes – the type of scale, size, colours can all be set in Menu > Settings > Chart
+Yes – the type of scale, size, colours can all be set in *Menu > Settings > Chart*.
 
 ### What time span does the information at the bottom of the Spike screen represent?
 
-The default is 24 hour. If you are using Spike in Master mode, you can change this in Menu > Settings > Chart. For Follower mode, the data is always the last 24 hours. More would need a download of 1 month’s data from Nightscout and would affect battery life.
+The default is 24 hour. If you are using Spike in Master mode, you can change this with a long tap on the table or in Menu > Settings > Chart. For Follower mode, the data is currently always the last 24 hours. In the future it may also be implemented in the Follower mode to select up to three months.
 
 ### How can I enable my BG value to display on the iOS app badge?
 
-Go to Settings> Share > BG App Badge and slide to enable
+Go to *Settings > Share > BG App Badge* and slide to enable.
 
 ### Why is the BG value on app badge not displaying correctly?
 
-It is – iOS app badges cannot contain decimal values (e.g. 4.8). For mmol/l users, Spike, by default, will round the badge to the nearest integer (e.g. a glucose value of 4.8 will be displayed as 5 on the badge). If you don’t want Spike to round your glucose value you can enable the multiplier (Settings > Share > BG App Badge > Apply Multiplier). When the multiplier is enabled, a glucose value of 4.8 will be displayed as 48, a value 5.3 as 53 etc. After changing this setting, you will need to wait for the next reading to see the changes.
+It is – iOS app badges cannot contain decimal values (e.g. 4.8). For mmol/l users, Spike, by default, will multiply the glucose value by ten (e.g. 4.8 will be displayed as 48, a value 5.3 as 53 etc.). When the multiplier is disabled, it will round the badge to the nearest integer (e.g. a glucose value of 4.8 will be displayed as 5 on the badge). 
+If you don’t want Spike to round your glucose value you can enable the multiplier (Settings > Share > BG App Badge > Apply Multiplier). After changing this setting, you will need to wait for the next reading to see the changes.
 
 ### What does a grey line on my graph mean?
 
 After a period of disconnection, some transmitters are able to back fill data upon being reconnected to the sensor. This data, as it’s historical and held in the sensor, is shown as a grey line. This data may be uploaded to Nightscout (but shown at 15 minute intervals, not 5 minute intervals), or may not be uploaded at all.
 
-### Why does my graph look like an Archery Target?
+### Why does my graph look like an archery target?
 
 This is because Spike doesn’t yet have enough data to show as a pie chart. Give it some time and it will adjust to show readings for the designated period.
 
@@ -60,7 +61,7 @@ This is because Spike doesn’t yet have enough data to show the rise/fall from 
 
 ### I like to see dots/a line – how do I do this?
 
-Check/uncheck the ‘line’ box.
+Check/uncheck the ‘line’ box on the bottom left (in portrait mode).
 
 ### What does the ‘Readings’ number and % figure mean?
 
