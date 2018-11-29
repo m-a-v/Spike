@@ -1,6 +1,3 @@
-Spike - FAQs and Knowledge Base
-===============================
-
 General
 -------
 
