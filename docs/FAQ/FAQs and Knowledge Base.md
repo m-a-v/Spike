@@ -100,17 +100,15 @@ Spike supports the Dexcom range of sensors (G4 with xdrip bridge hardware; G5 an
 
 ### I use Freestyle Libre – does using Spike mean I can’t use my Libre reader or the Librelink app too?
 
-No – you can still scan with your reader or librelink.
+No – you can still scan with your LibreReader or LibreLink.
 
 ### How long will my Freestyle Libre sensor last?
 
-Using Spike, the Freestyle Libre sensor will last 14 and a half days. This is the same for wherever you purchase your sensor in the world, although for some countries, you will not be able to use the libre scanner after 10 days.
+Using Spike, the Freestyle Libre sensor will last 14 and 12 hours. This is the same for wherever you purchase your sensor in the world, although for , you will not be able to use the Libre scanner after 10 days.
 
 ### Will Spike or a third party transmitter affect my sensor in any way?
 
 No – Spike will not change the sensor. It reads a signal that comes from the transmitter that is attached to your sensor. It cannot materially affect the sensor. Spike users should note that using Spike or third party transmitters with a sensor may invalidate the warranty.
-
-### Dexcom Sensor Questions
 
 ### I’ve just started / on the last day of my sensor, and my readings are erratic. Why so?
 
@@ -132,24 +130,29 @@ Alarms
 
 ### What alarms can be set?
 
-If you go to Menu > Settings > Alarms you will see the various alarms that can be set.
+If you go to *Menu > Settings > Alarms* you will see the various alarms that can be set.
 
 ### How do I set an alarm up?
 
-Go to Menu > Settings > Alarms > Alert Types. Click on “Add Alert” and name it, customise it to what you need and click on Save at the bottom
+Go to *Menu > Settings > Alarms > Alert Types*. Click on **Add Alert** and name it, customise it to what you need and click on Save at the bottom.
+
+### I can not see the Save button at the bottom
+
+Currently, Spike does not support display zoom. To disable, open the iOS Settings then select *Display & Brightness*. From here tap the *View* option below *Display Zoom* and select *Standard*.
 
 ### Alarms are not working – why?
 
--   Check that if your phone is on Mute, you have enabled Override Mute in Menu > Settings > Alarms
--   Check that your volume is turned up as Spike uses this volume for Notifications
--   Check that you are not in “Do Not Disturb” Mode
+* Check that if your phone is on Mute, you have enabled *Override Mute* in *Menu > Settings > Alarms*
+* Check that your volume is turned up as Spike uses this volume for Notifications
+* Check that you are not in “Do Not Disturb” Mode
+* You can also enable *Override System Volume* and define a *Custom Volume*
 
 Calibration
 -----------
 
 ### How do I calibrate?
 
-Calibration is simple when you know how. Always calibrate with a finger prick. Do not do it with the Dexcom reader, Libre reader or LibreLink app as they have their own algorithms, whereas Spike applies its own algorithm to the raw data based on your finger prick. Always calibrate when level and in range (Spike can be set to alert you when you are in steady range if you set the alarm to do so) but if you know that there’s an external factor involved, you can snooze it for a while any try again when you feel it is a better time. For example, if Spike is telling you it is fine to calibrate but you have just eaten or injected, or you are dehydrated, it might still be better to delay the calibration for a while.
+Calibration is simple when you know how. Always calibrate with a finger prick. Do not do it with the Dexcom reader, LibreReader or LibreLink app as they have their own algorithms, whereas Spike applies its own algorithm to the raw data based on your finger prick. Always calibrate when level and in range (Spike can be set to alert you when you are in steady range if you set the alarm to do so) but if you know that there’s an external factor involved, you can snooze it for a while any try again when you feel it is a better time. For example, if Spike is telling you it is fine to calibrate but you have just eaten or injected, or you are dehydrated, it might still be better to delay the calibration for a while.
 
 ### How often should I calibrate?
 
@@ -165,26 +168,30 @@ No, you do not need to delete. Spike will know that you have changed the sensor 
 
 Ideally yes, but unfortunately life isn’t like that. To get going with a new sensor, calibrate when requested to do so upon starting your sensor. Then, if you calibrate again when glucose readings are level and in range.
 
+### Where can I read more about calibration?
+
+There is an excellent article by David Burren which you can find here: <https://bionicwookiee.com/2018/11/15/cgm-accuracy-calibration-is-king>.
+
 Accuracy / Predictions
 ----------------------
 
 ### How accurate is Spike?
 
-We think Spike is pretty accurate. Spike takes the raw data sent from your sensor and using its own internal algorithm and calibration data, displays glucose levels. Spike can only be as good as the calibration information that the user enters, so having an accurate blood glucose meter is important. It’s also important to know that the sensor that you wear measures the glucose level of your
+We think Spike is pretty accurate. Spike takes the raw data sent from your sensor and using its own internal algorithm and calibration data, displays glucose levels. Spike can only be as good as the calibration information that the user enters, so having an accurate blood glucose meter is important.
 
 ### My Spike readings are not in line with blood test readings. What can I do?
 
-Deleting all Calibrations (Menu > Sensor > Calibrations > Delete all Calibrations) usually fixes this although it may be a faulty sensor. Check your sensor reading with a blood finger prick test. This has more frequently been an issue with Libre sensors. With the Dexcom G6, problems with accuracy can be caused by adding too many calibrations. Most accuracy issues are caused by incorrectly calibrating.
+Deleting all Calibrations (*Menu > Sensor > Calibrations > Delete all Calibrations*) usually fixes this although it may be a faulty sensor. Check your sensor reading with a blood finger prick test. This has more frequently been an issue with Libre sensors. With the Dexcom G6, problems with accuracy can be caused by adding too many calibrations. Most accuracy issues are caused by incorrectly calibrating.
 
 ### Can Spike display predicted levels?
 
-Not yet, but will hopefully be available in future updates
+Not yet, but will be available in future updates.
 
 Disconnection / Suspension / Battery Life
 -----------------------------------------
 
-### My device is unstable. What could I do?
-The first thing that should be tried is a soft reset, which forces a restart of the iPhone. This is necessary, if the device is unstable or if battery consumption has increased. No data is deleted during this process.
+### My device is unstable. My battery consumption has increased. What could I do?
+The first thing that should be considered is a soft reset, which forces a restart of the iPhone. This is necessary, if the device is unstable or if battery consumption has increased. No data is deleted during this process.
 
 * For all **iPhone models below the 7** (not included) just press and hold the power and home buttons at the same time and keep them pressed until your phone reboots and you see the Apple logo. As soon as the logo appears you can release both buttons.
 * For **iPhone 7**, press and hold the power and volume down buttons at the same time and keep them pressed until your phone reboots and you see the Apple logo. As soon as the logo appears you can release both buttons.
@@ -192,11 +199,11 @@ The first thing that should be tried is a soft reset, which forces a restart of 
 
 ### How can I avoid losing readings from my transmitter and/or preserve battery life?
 
-In order for Spike to avoid losing readings and perform download/upload operations in the background when you activate glucose sharing to online services (e.g. Nightscout or Dexcom Share) it avoids being suspended by iOS to ensure stability. In a normal scenario you should let Spike manage suspension but you may wish to change the settings in Menu > Settings > Advanced. Follow the instructions.
+In order for Spike to avoid losing readings and perform download/upload operations in the background when you activate glucose sharing to online services (e.g. Nightscout or Dexcom Share) it avoids being suspended by iOS to ensure stability. In a normal scenario you should let Spike manage suspension but you may wish to change the settings in *Menu > Settings > Advanced*. Follow the instructions.
 
 ### How can I prevent the iPhone from suspending during the night?
 
-* **iOS 12** One of iPhones newest features is screen time tracking. In settings you can create *down time* from your phone which only allows certain apps to run. If you only include Spike in your allowed apps and set downtime from 1am-7am this can reduce over night suspensions! Still close all your apps in the background (except Spike of course).
+* One of the new features of **iOS 12** is screen time tracking. In settings you can create *down time* from your phone which only allows certain apps to run. If you only include Spike in your allowed apps and set downtime from 1am-7am this can reduce over night suspensions! Still close all your apps in the background (except Spike of course).
 
 * TODO: Add more hints
 
@@ -303,4 +310,4 @@ Spike is a free app and it is Miguel’s intention to keep it that way. It survi
 
 If this app has impacted on your life in a positive way and you want to help keep this project alive, please consider making a donation. Every contribution counts.
 
-To donate, go to Main Menu > Donations
+To donate, go to *Main Menu > Donations*. Thank you.
