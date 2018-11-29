@@ -193,6 +193,12 @@ The first thing that should be tried is a soft reset, which forces a restart of 
 
 In order for Spike to avoid losing readings and perform download/upload operations in the background when you activate glucose sharing to online services (e.g. Nightscout or Dexcom Share) it avoids being suspended by iOS to ensure stability. In a normal scenario you should let Spike manage suspension but you may wish to change the settings in Menu > Settings > Advanced. Follow the instructions.
 
+### How can I prevent the iPhone from suspending during the night?
+
+* **iOS 12** One of iPhones newest features is screen time tracking. In settings you can create *down time* from your phone which only allows certain apps to run. If you only include Spike in your allowed apps and set downtime from 1am-7am this can reduce over night suspensions! Still close all your apps in the background (except Spike of course).
+
+* TODO: Add more hints
+
 ### How can I preserve my battery?
 
 TODO
