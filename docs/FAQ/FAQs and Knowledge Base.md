@@ -182,6 +182,13 @@ Not yet, but will hopefully be available in future updates
 Disconnection / Suspension / Battery Life
 -----------------------------------------
 
+### My device is unstable. What could I do?
+The first thing that should be tried is a soft reset, which forces a restart of the iPhone. This is necessary, if the device is unstable or if battery consumption has increased. No data is deleted during this process.
+
+* For all **iPhone models below the 7** (not included) just press and hold the power and home buttons at the same time and keep them pressed until your phone reboots and you see the Apple logo. As soon as the logo appears you can release both buttons.
+* For **iPhone 7**, press and hold the power and volume down buttons at the same time and keep them pressed until your phone reboots and you see the Apple logo. As soon as the logo appears you can release both buttons.
+* For **iPhone 8 and newer**, briefly press and release the volume up button, then immediately press and release the volume down button, and then press and hold the power button until the phone reboots and you see the Apple logo. As soon as the logo appears you can release the power button.
+
 ### How can I avoid losing readings from my transmitter and/or preserve battery life?
 
 In order for Spike to avoid losing readings and perform download/upload operations in the background when you activate glucose sharing to online services (e.g. Nightscout or Dexcom Share) it avoids being suspended by iOS to ensure stability. In a normal scenario you should let Spike manage suspension but you may wish to change the settings in Menu > Settings > Advanced. Follow the instructions.
