@@ -35,7 +35,7 @@ package ui.screens.display.treatments
 	import treatments.Treatment;
 	import treatments.TreatmentsManager;
 	
-	import ui.chart.GlucoseFactory;
+	import ui.chart.helpers.GlucoseFactory;
 	import ui.popups.AlertManager;
 	import ui.screens.display.SpikeList;
 	import ui.shapes.SpikeNGon;
@@ -229,7 +229,7 @@ package ui.screens.display.treatments
 				}
 				itemRenderer.iconOffsetX = 0;
 				itemRenderer.paddingRight = -25;
-				if (Constants.deviceModel == DeviceInfo.IPHONE_X_Xs && !Constants.isPortrait)
+				if (Constants.deviceModel == DeviceInfo.IPHONE_X_Xs_XsMax_Xr && !Constants.isPortrait)
 				{
 					if (Constants.currentOrientation == StageOrientation.ROTATED_RIGHT)
 						itemRenderer.paddingLeft = 30;

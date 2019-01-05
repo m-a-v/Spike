@@ -17,6 +17,7 @@ package ui.screens
 	import ui.AppInterface;
 	import ui.screens.display.LayoutFactory;
 	import ui.screens.display.settings.general.UpdateSettingsList;
+	import ui.screens.display.settings.maintenance.CacheMaintenanceSettingsList;
 	import ui.screens.display.settings.maintenance.DatabaseMaintenanceSettingsList;
 	import ui.screens.display.settings.maintenance.SettingsMaintenanceSettingsList;
 	
@@ -35,6 +36,8 @@ package ui.screens
 		private var databaseMaintenanceSettings:DatabaseMaintenanceSettingsList;
 		private var updatesSettingsList:UpdateSettingsList;
 		private var updateLabel:Label;
+		private var cachesMaintenanceLabel:Label;
+		private var cachesMaintenanceSettings:CacheMaintenanceSettingsList;
 		
 		public function MaintenanceScreen() 
 		{
@@ -81,6 +84,14 @@ package ui.screens
 				screenRenderer.addChild(updatesSettingsList);
 			}
 			
+			//Caches Section Label
+			cachesMaintenanceLabel = LayoutFactory.createSectionLabel(ModelLocator.resourceManagerInstance.getString('maintenancesettingsscreen','internal_cache_section_label'));
+			screenRenderer.addChild(cachesMaintenanceLabel);
+			
+			//Caches Settings
+			cachesMaintenanceSettings = new CacheMaintenanceSettingsList();
+			screenRenderer.addChild(cachesMaintenanceSettings);
+			
 			//Settings Section Label
 			settingsMaintenanceLabel = LayoutFactory.createSectionLabel(ModelLocator.resourceManagerInstance.getString('maintenancesettingsscreen','settings_section_label'));
 			screenRenderer.addChild(settingsMaintenanceLabel);
@@ -108,6 +119,9 @@ package ui.screens
 		 */
 		override protected function onBackButtonTriggered(event:Event):void
 		{
+			if (updatesSettingsList.needsSave)
+				updatesSettingsList.save();
+			
 			//Activate menu drag gesture
 			AppInterface.instance.drawers.openGesture = DragGesture.EDGE;
 			
@@ -122,14 +136,16 @@ package ui.screens
 		
 		override protected function onStarlingBaseResize(e:ResizeEvent):void 
 		{
-			if (Constants.deviceModel == DeviceInfo.IPHONE_X_Xs && !Constants.isPortrait && Constants.currentOrientation == StageOrientation.ROTATED_RIGHT)
+			if (Constants.deviceModel == DeviceInfo.IPHONE_X_Xs_XsMax_Xr && !Constants.isPortrait && Constants.currentOrientation == StageOrientation.ROTATED_RIGHT)
 			{
+				if (cachesMaintenanceLabel != null) cachesMaintenanceLabel.paddingLeft = 30;
 				if (settingsMaintenanceLabel != null) settingsMaintenanceLabel.paddingLeft = 30;
 				if (databaseMaintenanceLabel != null) databaseMaintenanceLabel.paddingLeft = 30;
 				if (updateLabel != null) updateLabel.paddingLeft = 30;
 			}
 			else
 			{
+				if (cachesMaintenanceLabel != null) cachesMaintenanceLabel.paddingLeft = 0;
 				if (settingsMaintenanceLabel != null) settingsMaintenanceLabel.paddingLeft = 0;
 				if (databaseMaintenanceLabel != null) databaseMaintenanceLabel.paddingLeft = 0;
 				if (updateLabel != null) updateLabel.paddingLeft = 0;
@@ -183,6 +199,20 @@ package ui.screens
 				updateLabel.removeFromParent();
 				updateLabel.dispose();
 				updateLabel = null;
+			}
+			
+			if (cachesMaintenanceLabel != null)
+			{
+				cachesMaintenanceLabel.removeFromParent();
+				cachesMaintenanceLabel.dispose();
+				cachesMaintenanceLabel = null;
+			}
+			
+			if (cachesMaintenanceSettings != null)
+			{
+				cachesMaintenanceSettings.removeFromParent();
+				cachesMaintenanceSettings.dispose();
+				cachesMaintenanceSettings = null;
 			}
 			
 			super.dispose();

@@ -2,7 +2,6 @@ package ui.screens.display.settings.treatments
 {
 	import com.adobe.utils.StringUtil;
 	
-	import flash.display.StageOrientation;
 	import flash.net.URLRequest;
 	import flash.net.navigateToURL;
 	
@@ -16,9 +15,6 @@ package ui.screens.display.settings.treatments
 	import feathers.controls.popups.DropDownPopUpContentManager;
 	import feathers.controls.renderers.DefaultListItemRenderer;
 	import feathers.controls.renderers.IListItemRenderer;
-	import feathers.controls.text.TextBlockTextRenderer;
-	import feathers.controls.text.TextFieldTextRenderer;
-	import feathers.core.ITextRenderer;
 	import feathers.data.ArrayCollection;
 	import feathers.layout.HorizontalAlign;
 	import feathers.layout.HorizontalLayout;
@@ -240,7 +236,7 @@ package ui.screens.display.settings.treatments
 			
 			if (carbAbsorptionRateDescription != null)
 			{
-				if (Constants.deviceModel == DeviceInfo.IPHONE_X_Xs && !Constants.isPortrait)
+				if (Constants.deviceModel == DeviceInfo.IPHONE_X_Xs_XsMax_Xr && !Constants.isPortrait)
 					carbAbsorptionRateDescription.width = width - 30;
 				else
 					carbAbsorptionRateDescription.width = width;
@@ -248,7 +244,7 @@ package ui.screens.display.settings.treatments
 			
 			if (carbAbsorptionTimeDescription != null)
 			{
-				if (Constants.deviceModel == DeviceInfo.IPHONE_X_Xs && !Constants.isPortrait)
+				if (Constants.deviceModel == DeviceInfo.IPHONE_X_Xs_XsMax_Xr && !Constants.isPortrait)
 					carbAbsorptionTimeDescription.width = width - 30;
 				else
 					carbAbsorptionTimeDescription.width = width;

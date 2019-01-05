@@ -42,6 +42,7 @@ package ui.screens.display.settings.share
 		private var batteryUploader:Check;
 		private var wifiOnlyUploaderCheck:Check;
 		private var ocUploader:Check;
+		private var predictionsUploader:Check;
 		
 		/* Properties */
 		public var needsSave:Boolean = false;
@@ -51,11 +52,13 @@ package ui.screens.display.settings.share
 		private var isBatteryUploaderEnabled:Boolean;
 		private var isWifiOnlyUploaderEnabled:Boolean;
 		private var isUploadOptimalCalibrationsEnabled:Boolean;
+		private var isUploadPredictionsEnabled:Boolean;
 		
 		public function NightscoutSettingsList()
 		{
 			super();
 		}
+		
 		override protected function initialize():void 
 		{
 			super.initialize();
@@ -85,6 +88,7 @@ package ui.screens.display.settings.share
 			isBatteryUploaderEnabled = CommonSettings.getCommonSetting(CommonSettings.COMMON_SETTING_NIGHTSCOUT_BATTERY_UPLOADER_ON) == "true";
 			isWifiOnlyUploaderEnabled = CommonSettings.getCommonSetting(CommonSettings.COMMON_SETTING_NIGHTSCOUT_WIFI_ONLY_UPLOADER_ON) == "true";
 			isUploadOptimalCalibrationsEnabled = CommonSettings.getCommonSetting(CommonSettings.COMMON_SETTING_UPLOAD_OPTIMAL_CALIBRATION_TO_NS_ON) == "true";
+			isUploadPredictionsEnabled = CommonSettings.getCommonSetting(CommonSettings.COMMON_SETTING_NIGHTSCOUT_PREDICTIONS_UPLOADER_ON) == "true";
 		}
 		
 		private function setupContent():void
@@ -94,7 +98,7 @@ package ui.screens.display.settings.share
 			nsToggle.addEventListener( Event.CHANGE, onNightscoutOnOff );
 			
 			//URL
-			nsURL = LayoutFactory.createTextInput(false, false, Constants.deviceModel == DeviceInfo.IPHONE_X_Xs ? 190 : 220, HorizontalAlign.RIGHT, false, false, true);
+			nsURL = LayoutFactory.createTextInput(false, false, Constants.deviceModel == DeviceInfo.IPHONE_X_Xs_XsMax_Xr ? 190 : 220, HorizontalAlign.RIGHT, false, false, true);
 			if (!Constants.isPortrait) nsURL.width += 100;
 			if (DeviceInfo.isTablet()) nsURL.width += 100;
 			nsURL.text = selectedURL;
@@ -103,7 +107,7 @@ package ui.screens.display.settings.share
 			nsURL.addEventListener(Event.CHANGE, onSettingsChanged);
 			
 			//API Secret
-			nsAPISecret = LayoutFactory.createTextInput(true, false, Constants.deviceModel == DeviceInfo.IPHONE_X_Xs ? 120 : 140, HorizontalAlign.RIGHT);
+			nsAPISecret = LayoutFactory.createTextInput(true, false, Constants.deviceModel == DeviceInfo.IPHONE_X_Xs_XsMax_Xr ? 120 : 140, HorizontalAlign.RIGHT);
 			if (!Constants.isPortrait) nsAPISecret.width += 100;
 			if (DeviceInfo.isTablet()) nsAPISecret.width += 100;
 			nsAPISecret.text = selectedAPISecret;
@@ -118,6 +122,10 @@ package ui.screens.display.settings.share
 			//Battery Uploader
 			batteryUploader = LayoutFactory.createCheckMark(isBatteryUploaderEnabled);
 			batteryUploader.addEventListener(Event.CHANGE, onSettingsChanged);
+			
+			//Predictions Uploader
+			predictionsUploader = LayoutFactory.createCheckMark(isUploadPredictionsEnabled);
+			predictionsUploader.addEventListener(Event.CHANGE, onSettingsChanged);
 			
 			//Optimal Calibration Uploader
 			ocUploader = LayoutFactory.createCheckMark(isUploadOptimalCalibrationsEnabled);
@@ -172,6 +180,10 @@ package ui.screens.display.settings.share
 				if (CommonSettings.getCommonSetting(CommonSettings.COMMON_SETTING_NIGHTSCOUT_BATTERY_UPLOADER_ON) != String(isBatteryUploaderEnabled))
 					CommonSettings.setCommonSetting(CommonSettings.COMMON_SETTING_NIGHTSCOUT_BATTERY_UPLOADER_ON, String(isBatteryUploaderEnabled));
 				
+				//Predictions Uploader
+				if (CommonSettings.getCommonSetting(CommonSettings.COMMON_SETTING_NIGHTSCOUT_PREDICTIONS_UPLOADER_ON) != String(isUploadPredictionsEnabled))
+					CommonSettings.setCommonSetting(CommonSettings.COMMON_SETTING_NIGHTSCOUT_PREDICTIONS_UPLOADER_ON, String(isUploadPredictionsEnabled));
+				
 				//Optimal Calibration Uploader
 				if (CommonSettings.getCommonSetting(CommonSettings.COMMON_SETTING_UPLOAD_OPTIMAL_CALIBRATION_TO_NS_ON) != String(isUploadOptimalCalibrationsEnabled))
 				{
@@ -201,6 +213,7 @@ package ui.screens.display.settings.share
 			isBatteryUploaderEnabled = batteryUploader.isSelected;
 			isWifiOnlyUploaderEnabled = wifiOnlyUploaderCheck.isSelected;
 			isUploadOptimalCalibrationsEnabled = ocUploader.isSelected;
+			isUploadPredictionsEnabled = predictionsUploader.isSelected;
 			
 			needsSave = true;
 		}
@@ -224,6 +237,7 @@ package ui.screens.display.settings.share
 						{ label: ModelLocator.resourceManagerInstance.getString('sharesettingsscreen','nightscout_url_label'), accessory: nsURL },
 						{ label: ModelLocator.resourceManagerInstance.getString('sharesettingsscreen','nightscout_api_label'), accessory: nsAPISecret },
 						{ label: ModelLocator.resourceManagerInstance.getString('sharesettingsscreen','nightscout_battery_upload_label'), accessory: batteryUploader },
+						{ label: ModelLocator.resourceManagerInstance.getString('sharesettingsscreen','nightscout_predictions_uploader'), accessory: predictionsUploader },
 						{ label: ModelLocator.resourceManagerInstance.getString('sharesettingsscreen','nightscout_optimal_calibration_uploader'), accessory: ocUploader },
 						{ label: ModelLocator.resourceManagerInstance.getString('sharesettingsscreen','wifi_only_sync_label'), accessory: wifiOnlyUploaderCheck },
 						{ label: "", accessory: nsLogin },
@@ -265,7 +279,7 @@ package ui.screens.display.settings.share
 			if (nsURL != null)
 			{
 				SystemUtil.executeWhenApplicationIsActive( nsURL.clearFocus );
-				nsURL.width = Constants.deviceModel == DeviceInfo.IPHONE_X_Xs ? 190 : 220;
+				nsURL.width = Constants.deviceModel == DeviceInfo.IPHONE_X_Xs_XsMax_Xr ? 190 : 220;
 				if (!Constants.isPortrait) nsURL.width += 100;
 				if (DeviceInfo.isTablet()) nsURL.width += 100;
 			}
@@ -273,7 +287,7 @@ package ui.screens.display.settings.share
 			if (nsAPISecret != null)
 			{
 				SystemUtil.executeWhenApplicationIsActive( nsAPISecret.clearFocus );
-				nsAPISecret.width = Constants.deviceModel == DeviceInfo.IPHONE_X_Xs ? 120 : 140;
+				nsAPISecret.width = Constants.deviceModel == DeviceInfo.IPHONE_X_Xs_XsMax_Xr ? 120 : 140;
 				if (!Constants.isPortrait) nsAPISecret.width += 100;
 				if (DeviceInfo.isTablet()) nsAPISecret.width += 100;
 			}
@@ -317,6 +331,12 @@ package ui.screens.display.settings.share
 				batteryUploader.removeEventListener(Event.CHANGE, onSettingsChanged);
 				batteryUploader.dispose();
 				batteryUploader = null;
+			}
+			if(predictionsUploader != null)
+			{
+				predictionsUploader.removeEventListener(Event.CHANGE, onSettingsChanged);
+				predictionsUploader.dispose();
+				predictionsUploader = null;
 			}
 			if(wifiOnlyUploaderCheck != null)
 			{

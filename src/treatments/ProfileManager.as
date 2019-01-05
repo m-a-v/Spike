@@ -6,6 +6,8 @@ package treatments
 	import database.CommonSettings;
 	import database.Database;
 	
+	import ui.popups.AlertManager;
+	
 	import utils.Trace;
 	import utils.UniqueId;
 
@@ -15,6 +17,7 @@ package treatments
 		private static var insulinsMap:Dictionary = new Dictionary();
 		public static var profilesList:Array = [];
 		private static var profilesMap:Dictionary = new Dictionary();
+		private static var profilesMapByTime:Object = {};
 		private static var nightscoutCarbAbsorptionRate:Number = 0;
 		
 		public function ProfileManager()
@@ -26,91 +29,175 @@ package treatments
 		{
 			Trace.myTrace("ProfileManager.as", "init called!");
 			
-			if (!CGMBlueToothDevice.isFollower() || (CGMBlueToothDevice.isFollower() && CommonSettings.getCommonSetting(CommonSettings.COMMON_SETTING_DATA_COLLECTION_NS_URL) != "" && CommonSettings.getCommonSetting(CommonSettings.COMMON_SETTING_DATA_COLLECTION_NS_API_SECRET) != "" && CommonSettings.getCommonSetting(CommonSettings.COMMON_SETTING_FOLLOWER_MODE) == "Nightscout"))
+			//Common variables
+			var i:int;
+				
+			//Get insulins
+			var dbInsulines:Array = Database.getInsulinsSynchronous();
+			if (dbInsulines != null && dbInsulines.length > 0)
 			{
-				//Common variables
-				var i:int;
-				
-				//Get insulins
-				var dbInsulines:Array = Database.getInsulinsSynchronous();
-				if (dbInsulines != null && dbInsulines.length > 0)
+				for (i = 0; i < dbInsulines.length; i++) 
 				{
-					for (i = 0; i < dbInsulines.length; i++) 
+					var dbInsulin:Object = dbInsulines[i] as Object;
+					if (dbInsulin == null)
+						continue;
+						
+					var insulin:Insulin = new Insulin
+					(
+						dbInsulin.id,
+						dbInsulin.name,
+						dbInsulin.dia,
+						dbInsulin.type,
+						dbInsulin.isdefault == "true" ? true : false,
+						dbInsulin.lastmodifiedtimestamp,
+						dbInsulin.ishidden != null && dbInsulin.ishidden == "true" ? true : false,
+						dbInsulin.curve != null && dbInsulin.curve != "" ? dbInsulin.curve : "bilinear",
+						dbInsulin.peak != null && !isNaN(dbInsulin.peak) ? Number(dbInsulin.peak) : 75
+					);
+						
+					insulinsList.push(insulin);
+					insulinsMap[dbInsulin.id] = insulin;
+						
+					if (insulin.ID == "000000" && !insulin.isHidden) //Hide Nightscout insulin from UI
 					{
-						var dbInsulin:Object = dbInsulines[i] as Object;
-						if (dbInsulin == null)
-							continue;
-						
-						var insulin:Insulin = new Insulin
-						(
-							dbInsulin.id,
-							dbInsulin.name,
-							dbInsulin.dia,
-							dbInsulin.type,
-							dbInsulin.isdefault == "true" ? true : false,
-							dbInsulin.lastmodifiedtimestamp,
-							dbInsulin.ishidden != null && dbInsulin.ishidden == "true" ? true : false
-						);
-						
-						insulinsList.push(insulin);
-						insulinsMap[dbInsulin.id] = insulin;
-						
-						if (insulin.ID == "000000" && !insulin.isHidden) //Hide Nightscout insulin from UI
-						{
-							insulin.isHidden = true;
-							updateInsulin(insulin);
-						}
+						insulin.isHidden = true;
+						updateInsulin(insulin);
 					}
-					insulinsList.sortOn(["name"], Array.CASEINSENSITIVE);
-					
-					Trace.myTrace("ProfileManager.as", "Got insulns from database!");
 				}
-				else
-					Trace.myTrace("ProfileManager.as", "No insulins stored in database!");
-				
-				//Get Profiles
-				var dbProfiles:Array = Database.getProfilesSynchronous();
-				if (dbProfiles != null && dbProfiles.length > 0)
-				{
-					for (i = 0; i < dbProfiles.length; i++) 
-					{
-						var dbProfile:Object = dbProfiles[i] as Object;
-						if (dbProfile == null)
-							continue;
-						
-						var profile:Profile = new Profile
-						(
-							dbProfile.id,
-							dbProfile.time,
-							dbProfile.name,
-							dbProfile.insulintocarbratios,
-							dbProfile.insulinsensitivityfactors,
-							dbProfile.carbsabsorptionrate,
-							dbProfile.basalrates,
-							dbProfile.targetglucoserates,
-							Number(dbProfile.lastmodifiedtimestamp)
-						);
-						
-						profilesList.push(profile);
-						profilesMap[dbProfile.id] = profile;
-					}
-					profilesList.sortOn(["name"], Array.CASEINSENSITIVE);
+				insulinsList.sortOn(["name"], Array.CASEINSENSITIVE);
 					
-					Trace.myTrace("ProfileManager.as", "Got profile from database!");
-				}
-				else
-					Trace.myTrace("ProfileManager.as", "No profiles stored in database!");
-				
-				if (profilesList.length == 0)
-				{
-					Trace.myTrace("ProfileManager.as", "Creating default profile...");
-					
-					createDefaultProfile();
-				}
+				Trace.myTrace("ProfileManager.as", "Got insulns from database!");
 			}
+			else
+				Trace.myTrace("ProfileManager.as", "No insulins stored in database!");
+				
+			//Get Profiles
+			var dbProfiles:Array = Database.getProfilesSynchronous();
+			if (dbProfiles != null && dbProfiles.length > 0)
+			{
+				for (i = 0; i < dbProfiles.length; i++) 
+				{
+					var dbProfile:Object = dbProfiles[i] as Object;
+					if (dbProfile == null)
+						continue;
+						
+					var profile:Profile = new Profile
+					(
+						dbProfile.id,
+						dbProfile.time,
+						dbProfile.name,
+						dbProfile.insulintocarbratios,
+						dbProfile.insulinsensitivityfactors,
+						dbProfile.carbsabsorptionrate,
+						dbProfile.basalrates,
+						dbProfile.targetglucoserates,
+						dbProfile.trendcorrections,
+						Number(dbProfile.lastmodifiedtimestamp)
+					);
+						
+					profilesList.push(profile);
+					profilesMap[dbProfile.id] = profile;
+					profilesMapByTime[profile.time] = profile;
+				}
+				profilesList.sortOn(["time"], Array.CASEINSENSITIVE);
+					
+				Trace.myTrace("ProfileManager.as", "Got profile from database!");
+			}
+			else
+				Trace.myTrace("ProfileManager.as", "No profiles stored in database!");
+				
+			if (profilesList.length == 0)
+			{
+				Trace.myTrace("ProfileManager.as", "Creating default profile...");
+				
+				createDefaultProfile();
+			}
+			
+			removeDuplicateProfiles();
 		}
 		
-		public static function createDefaultProfile():void
+		private static function removeDuplicateProfiles():void
+		{
+			var tempProfilesList:Object = {};
+			var tempProfilesArray:Array = [];
+			
+			var numberOfRealProfiles:uint = profilesList.length;
+			for (var i:int = 0; i < numberOfRealProfiles; i++) 
+			{
+				var realProfile:Profile = profilesList[i];
+				if (realProfile == null)
+				{
+					continue;
+				}
+				
+				if (tempProfilesList[realProfile.time] == null)
+				{
+					tempProfilesList[realProfile.time] = realProfile;
+				}
+				else
+				{
+					var tempProfile:Profile = tempProfilesList[realProfile.time];
+					if (tempProfile != null)
+					{
+						if 
+						(
+							(realProfile.timestamp >= tempProfile.timestamp && realProfile.insulinSensitivityFactors == "" && tempProfile.insulinSensitivityFactors == "")
+							||
+							(realProfile.timestamp >= tempProfile.timestamp && realProfile.insulinSensitivityFactors != "" && tempProfile.insulinSensitivityFactors != "")
+							||
+							(realProfile.insulinSensitivityFactors != "" && tempProfile.insulinSensitivityFactors == "")
+						)
+						{
+							Database.deleteProfileSynchronous(tempProfile);
+							
+							if (profilesMap[tempProfile.ID])
+							{
+								delete 	profilesMap[tempProfile.ID];
+							}
+							
+							if (profilesMapByTime[tempProfile.time])
+							{
+								delete 	profilesMapByTime[tempProfile.time];
+							}
+							
+							tempProfile = null;
+							
+							tempProfilesList[realProfile.time] = realProfile;
+						}
+						else
+						{
+							Database.deleteProfileSynchronous(realProfile);
+							
+							if (profilesMap[realProfile.ID])
+							{
+								delete 	profilesMap[realProfile.ID];
+							}
+							
+							if (profilesMapByTime[realProfile.time])
+							{
+								delete 	profilesMapByTime[realProfile.time];
+							}
+							
+							realProfile = null;
+						}
+					}
+				}
+			}
+			
+			for (var key:String in tempProfilesList)
+			{
+				var finalProfile:Profile = tempProfilesList[key];
+				if (finalProfile != null && finalProfile is Profile)
+				{
+					tempProfilesArray.push(finalProfile);
+				}
+			}
+			
+			profilesList = tempProfilesArray;
+			profilesList.sortOn(["time"], Array.CASEINSENSITIVE);
+		}
+		
+		public static function createDefaultProfile():Profile
 		{
 			profilesList.length = 0;
 			
@@ -125,15 +212,20 @@ package treatments
 					30,
 					"",
 					"",
+					"",
 					new Date().valueOf()
 				);
 			
 			//Push to memory
 			profilesList.push(defaultProfile);
 			profilesMap[defaultProfile.ID] = defaultProfile;
+			profilesMapByTime[defaultProfile.time] = defaultProfile;
 			
 			//Save to Database
 			Database.insertProfileSynchronous(defaultProfile);
+			
+			//Return profile
+			return defaultProfile;
 		}
 		
 		public static function getInsulin(ID:String):Insulin
@@ -141,7 +233,7 @@ package treatments
 			return insulinsMap[ID];
 		}
 		
-		public static function addInsulin(name:String, dia:Number, type:String, isDefault:Boolean = false, insulinID:String = null, saveToDatabase:Boolean = true, isHidden:Boolean = false):void
+		public static function addInsulin(name:String, dia:Number, type:String, isDefault:Boolean = false, insulinID:String = null, saveToDatabase:Boolean = true, isHidden:Boolean = false, curve:String = "bilinear", peak:Number = 75):void
 		{
 			Trace.myTrace("ProfileManager.as", "addInsulin called!");
 			
@@ -165,7 +257,9 @@ package treatments
 					type,
 					isDefault,
 					new Date().valueOf(),
-					isHidden
+					isHidden,
+					curve,
+					peak
 				);
 				
 				//Add to Spike
@@ -283,21 +377,67 @@ package treatments
 			
 			//Update Database
 			Database.updateProfileSynchronous(profile);
+			
+			//Sort profile list by time
+			profilesList.sortOn(["time"], Array.CASEINSENSITIVE);
 		}
 		
 		public static function insertProfile(profile:Profile):void
 		{	
 			Trace.myTrace("ProfileManager.as", "insertProfile called!");
 			
-			//Push to memory
-			profilesList.push(profile);
-			profilesMap[profile.ID] = profile;
+			if (profilesMapByTime[profile.time] == null)
+			{
+				//Push to memory
+				profilesList.push(profile);
+				profilesMap[profile.ID] = profile;
+				profilesMapByTime[profile.time] = profile;
+				
+				//Save to Database
+				Database.insertProfileSynchronous(profile);
+				
+				//Sort profile list by time
+				profilesList.sortOn(["time"], Array.CASEINSENSITIVE);
+			}
+			else
+			{
+				AlertManager.showSimpleAlert
+				(
+					"Warning",
+					"Error creating profile! Found existing profile with the same start time."
+				);
+			}
+		}
+		
+		public static function deleteProfile(profile:Profile):void
+		{
+			Trace.myTrace("ProfileManager.as", "deleteProfile called!");
 			
-			//Save to Database
-			Database.insertProfileSynchronous(profile);
-			
-			//Sort profile list by time
-			profilesList.sortOn(["time"], Array.CASEINSENSITIVE);
+			if (profilesMap[profile.ID] != null)
+			{
+				//Find Profile
+				for (var i:int = 0; i < profilesList.length; i++) 
+				{
+					var userProfile:Profile = profilesList[i];
+					if (userProfile.ID == profile.ID)
+					{
+						Trace.myTrace("ProfileManager.as", "Deleting profile... Name: " + profile.name + ", Time: " + profile.time);
+						
+						//Profile found. Remove it from Spike.
+						profilesList.removeAt(i);
+						profilesMap[profile.ID] = null;
+						profilesMapByTime[profile.time] = null;
+						
+						//Delete from database
+						Database.deleteProfileSynchronous(userProfile);
+						
+						//Sort profile list by time
+						profilesList.sortOn(["time"], Array.CASEINSENSITIVE);
+						
+						break;
+					}
+				}
+			}
 		}
 		
 		public static function addNightscoutCarbAbsorptionRate(rate:Number):void
@@ -309,7 +449,7 @@ package treatments
 		
 		public static function getCarbAbsorptionRate():Number
 		{
-			var carbAbsorptionRate:Number = 0;
+			var carbAbsorptionRate:Number = 30;
 			
 			if (!CGMBlueToothDevice.isFollower())
 			{
@@ -338,6 +478,83 @@ package treatments
 				carbType = "slow";
 			
 			return carbType;
+		}
+		
+		public static function getProfileByTime(requestedTimestamp:Number):Profile
+		{
+			var currentProfile:Profile;
+			
+			try
+			{
+				var requestedDate:Date = new Date(requestedTimestamp);
+				var requestedDateAdjusted:Date = new Date();
+				requestedDateAdjusted.hours = requestedDate.hours;
+				requestedDateAdjusted.minutes = requestedDate.minutes;
+				requestedDateAdjusted.seconds = requestedDate.seconds;
+				requestedDateAdjusted.milliseconds = requestedDate.milliseconds;
+				var requestedTimestampAdjusted:Number = requestedDateAdjusted.valueOf();
+				
+				var numberOfProfiles:int = profilesList.length;
+				if (numberOfProfiles == 0)
+				{
+					createDefaultProfile();
+					numberOfProfiles = profilesList.length;
+				}
+				
+				for (var i:int = numberOfProfiles - 1 ; i >= 0; i--)
+				{
+					var profile:Profile = profilesList[i] as Profile;
+					if (profile != null)
+					{	
+						var profileDate:Date = getProfileDate(profile);
+						var profileTimestamp:Number = profileDate.valueOf();
+						
+						if (requestedTimestampAdjusted >= profileTimestamp)
+						{
+							currentProfile = profile;
+							break;
+						}
+					}
+				}
+			} 
+			catch(error:Error) {}
+			
+			if (currentProfile == null)
+			{
+				currentProfile = createDefaultProfile();
+			}
+			
+			return currentProfile;
+		}
+		
+		public static function getProfileDate(profile:Profile):Date
+		{
+			var profileDate:Date = new Date();
+			profileDate.hours = 0;
+			profileDate.minutes = 0;
+			profileDate.seconds = 0;
+			profileDate.milliseconds = 0;
+			
+			try
+			{
+				var profileDividedTime:Array = profile.time.split(":");
+				var profileHour:Number = Number(profileDividedTime[0]);
+				var profileMinutes:Number = Number(profileDividedTime[1]);
+				
+				if (isNaN(profileHour))
+					profileHour = 0;
+				
+				if (isNaN(profileMinutes))
+					profileMinutes = 0;
+				
+				profileDate.hours = profileHour;
+				profileDate.minutes = profileMinutes;
+				profileDate.seconds = 0;
+				profileDate.milliseconds = 0;
+			} 
+			catch(error:Error) {}
+			
+			return profileDate;
 		}
 	}
 }

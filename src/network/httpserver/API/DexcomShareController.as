@@ -1,11 +1,15 @@
 package network.httpserver.API
 {
 	import flash.net.URLVariables;
+	import flash.utils.setTimeout;
 	
 	import database.BgReading;
 	import database.CGMBlueToothDevice;
+	import database.CommonSettings;
 	
 	import network.httpserver.ActionController;
+	
+	import services.NightscoutService;
 	
 	import utils.SpikeJSON;
 	import utils.TimeSpan;
@@ -71,6 +75,28 @@ package network.httpserver.API
 				if (params.maxCount != null)	
 					numReadings = int(params.maxCount);
 				
+				var includeCollector:Boolean = false;
+				if (params.include_collector != null && params.include_collector == "true")
+				{
+					includeCollector = true;
+				}
+				
+				var collector:String = null;
+				var fwVersion:String = null;
+				var swVersion:String = null;
+				var hwVersion:String = null;
+				var manufacturer:String = null;
+				var localIdentifier:String = null;
+				if (includeCollector)
+				{
+					collector = CGMBlueToothDevice.deviceType();
+					fwVersion = CGMBlueToothDevice.getFirmwareVersion();
+					swVersion = CGMBlueToothDevice.getSoftwareVersion();
+					hwVersion = CGMBlueToothDevice.getHardwareVersion();
+					manufacturer = CGMBlueToothDevice.getManufacturer();
+					localIdentifier = CGMBlueToothDevice.getLocalIdentifier();
+				}
+				
 				var dexcomReadingsList:Array = BgReading.latest(numReadings, CGMBlueToothDevice.isFollower());
 				var dexcomReadingsCollection:Array = [];
 				
@@ -80,7 +106,7 @@ package network.httpserver.API
 					if (bgReading == null || bgReading.calculatedValue == 0)
 						continue;
 					
-					dexcomReadingsCollection.push(createGlucoseReading(bgReading));
+					dexcomReadingsCollection.push(createGlucoseReading(bgReading, collector, manufacturer, fwVersion, swVersion, hwVersion, localIdentifier));
 				}
 				
 				//response = JSON.stringify(dexcomReadingsCollection);
@@ -100,6 +126,12 @@ package network.httpserver.API
 				response = "[]";
 			}
 			
+			//If it's a Loop user grab IOB/COB/Predictions from NS 15 seconds from now
+			if (CommonSettings.getCommonSetting(CommonSettings.COMMON_SETTING_TREATMENTS_LOOP_OPENAPS_USER_ENABLED) == "true")
+			{
+				setTimeout(NightscoutService.getPropertiesV2Endpoint, 15000, true);	
+			}
+				
 			return responseSuccess(response);
 		}
 		
@@ -144,7 +176,7 @@ package network.httpserver.API
 			return responseJSON;
 		}
 		
-		private static function createGlucoseReading(glucoseReading:BgReading):Object
+		private static function createGlucoseReading(glucoseReading:BgReading, collector:String = null, manufacturer:String = null, fwVersion:String = null, swVersion:String = null, hwVersion:String = null, localIdentifier:String = null):Object
 		{
 			var newReading:Object = new Object();
 			newReading.DT = toDateString(glucoseReading.timestamp);
@@ -152,6 +184,12 @@ package network.httpserver.API
 			newReading.Trend = glucoseReading.getSlopeOrdinal();
 			newReading.Value = Math.round(glucoseReading.calculatedValue);
 			newReading.WT = toDateString(glucoseReading.timestamp - TimeSpan.TIME_5_SECONDS);
+			if (collector != null) newReading.Collector = collector;
+			if (manufacturer != null) newReading.Manufacturer = manufacturer;
+			if (fwVersion != null) newReading.FWVersion = fwVersion;
+			if (swVersion != null) newReading.SWVersion = swVersion;
+			if (hwVersion != null) newReading.SWVersion = hwVersion;
+			if (localIdentifier != null) newReading.LocalIdentifier = localIdentifier;
 			
 			return newReading;
 		}

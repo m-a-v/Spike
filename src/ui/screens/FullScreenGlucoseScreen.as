@@ -18,6 +18,7 @@ package ui.screens
 	import database.CommonSettings;
 	
 	import events.FollowerEvent;
+	import events.PredictionEvent;
 	import events.TransmitterServiceEvent;
 	
 	import feathers.controls.DragGesture;
@@ -33,6 +34,7 @@ package ui.screens
 	import feathers.themes.BaseMaterialDeepGreyAmberMobileTheme;
 	import feathers.themes.MaterialDeepGreyAmberMobileThemeIcons;
 	
+	import model.Forecast;
 	import model.ModelLocator;
 	
 	import services.NightscoutService;
@@ -53,8 +55,8 @@ package ui.screens
 	
 	import ui.AppInterface;
 	import ui.InterfaceController;
-	import ui.chart.GlucoseFactory;
-	import ui.chart.GraphLayoutFactory;
+	import ui.chart.helpers.GlucoseFactory;
+	import ui.chart.layout.GraphLayoutFactory;
 	import ui.screens.display.LayoutFactory;
 	
 	import utils.Constants;
@@ -64,6 +66,7 @@ package ui.screens
 	
 	[ResourceBundle("fullscreenglucosescreen")]
 	[ResourceBundle("chartscreen")]
+	[ResourceBundle("globaltranslations")]
 
 	public class FullScreenGlucoseScreen extends BaseSubScreen
 	{	
@@ -119,6 +122,11 @@ package ui.screens
 			
 			addEventListener(FeathersEventType.CREATION_COMPLETE, onCreation);
 			Starling.current.stage.addEventListener(starling.events.Event.RESIZE, onStarlingResize);
+			if (CommonSettings.getCommonSetting(CommonSettings.COMMON_SETTING_TREATMENTS_LOOP_OPENAPS_USER_ENABLED) == "true" && CommonSettings.getCommonSetting(CommonSettings.COMMON_SETTING_GLUCOSE_PREDICTIONS_ENABLED) == "true")
+			{
+				Forecast.instance.addEventListener(PredictionEvent.APS_RETRIEVED, onAPSPredictionRetrieved);
+			}
+			
 			this.horizontalScrollPolicy = ScrollPolicy.OFF;
 			
 			setupHeader();
@@ -184,7 +192,7 @@ package ui.screens
 			timeAgoDisplay = LayoutFactory.createLabel(timeAgoOutput, HorizontalAlign.LEFT, VerticalAlign.MIDDLE, infoFontSize, false, timeAgoColor);
 			timeAgoDisplay.width = 350;
 			timeAgoDisplay.y = 10;
-			timeAgoDisplay.x = Constants.deviceModel == DeviceInfo.IPHONE_X_Xs && !Constants.isPortrait && Constants.currentOrientation == StageOrientation.ROTATED_RIGHT ? 40 : 10;
+			timeAgoDisplay.x = Constants.deviceModel == DeviceInfo.IPHONE_X_Xs_XsMax_Xr && !Constants.isPortrait && Constants.currentOrientation == StageOrientation.ROTATED_RIGHT ? 40 : 10;
 			timeAgoDisplay.validate();
 			addChild(timeAgoDisplay);
 			
@@ -202,15 +210,15 @@ package ui.screens
 			slopeDisplay = LayoutFactory.createLabel(latestGlucoseSlopeOutput != "" && latestGlucoseSlopeOutput != null ? latestGlucoseSlopeOutput + " " + GlucoseHelper.getGlucoseUnit() : "", HorizontalAlign.RIGHT, VerticalAlign.MIDDLE, infoFontSize, false, latestSlopeInfoColor);
 			slopeDisplay.width = 300;
 			slopeDisplay.validate();
-			slopeDisplay.x = Constants.stageWidth - slopeDisplay.width - (Constants.deviceModel == DeviceInfo.IPHONE_X_Xs && !Constants.isPortrait && Constants.currentOrientation == StageOrientation.ROTATED_LEFT ? 40 : 10);
+			slopeDisplay.x = Constants.stageWidth - slopeDisplay.width - (Constants.deviceModel == DeviceInfo.IPHONE_X_Xs_XsMax_Xr && !Constants.isPortrait && Constants.currentOrientation == StageOrientation.ROTATED_LEFT ? 40 : 10);
 			slopeDisplay.y = timeAgoDisplay.y;
 			addChild(slopeDisplay);
 			
 			/* IOB/COB Display Label */
 			var now:Number = new Date().valueOf();
-			IOBCOBDisplay = GraphLayoutFactory.createChartStatusText(timeAgoColor != 0 ? "IOB: " + GlucoseFactory.formatIOB(TreatmentsManager.getTotalIOB(now)) + "  COB: " + GlucoseFactory.formatCOB(TreatmentsManager.getTotalCOB(now)) : "", timeAgoColor, infoFontSize, Align.CENTER, false, Constants.stageWidth);
+			IOBCOBDisplay = GraphLayoutFactory.createChartStatusText(timeAgoColor != 0 ? "IOB: " + GlucoseFactory.formatIOB(TreatmentsManager.getTotalIOB(now).iob) + "  COB: " + GlucoseFactory.formatCOB(TreatmentsManager.getTotalCOB(now, CommonSettings.getCommonSetting(CommonSettings.COMMON_SETTING_DEFAULT_IOB_COB_ALGORITHM) == "openaps").cob) + getPredictionText() : "", timeAgoColor, infoFontSize, Align.CENTER, false, Constants.stageWidth);
 			var IOBCOBLayoutData:AnchorLayoutData = new AnchorLayoutData();
-			if (Constants.deviceModel != DeviceInfo.IPHONE_X_Xs)
+			if (Constants.deviceModel != DeviceInfo.IPHONE_X_Xs_XsMax_Xr)
 				IOBCOBLayoutData.bottom = 10;
 			else
 				IOBCOBLayoutData.bottom = 20;
@@ -258,7 +266,7 @@ package ui.screens
 			/* IOB / COB Display Label */
 			var now:Number = new Date().valueOf();
 			IOBCOBDisplay.fontStyles.color = timeAgoColor;
-			IOBCOBDisplay.text = "IOB: " + GlucoseFactory.formatIOB(TreatmentsManager.getTotalIOB(now)) + "  COB: " + GlucoseFactory.formatCOB(TreatmentsManager.getTotalCOB(now));
+			IOBCOBDisplay.text = getPredictionText() + "IOB: " + GlucoseFactory.formatIOB(TreatmentsManager.getTotalIOB(now).iob) + "  COB: " + GlucoseFactory.formatCOB(TreatmentsManager.getTotalCOB(now, CommonSettings.getCommonSetting(CommonSettings.COMMON_SETTING_DEFAULT_IOB_COB_ALGORITHM) == "openaps").cob);
 		}
 		
 		private function calculateValues():void
@@ -423,8 +431,32 @@ package ui.screens
 			{
 				var now:Number = new Date().valueOf();
 				IOBCOBDisplay.fontStyles.color = timeAgoColor;
-				IOBCOBDisplay.text = "IOB: " + GlucoseFactory.formatIOB(TreatmentsManager.getTotalIOB(now)) + "  COB: " + GlucoseFactory.formatCOB(TreatmentsManager.getTotalCOB(now));
+				IOBCOBDisplay.text = getPredictionText() + "IOB: " + GlucoseFactory.formatIOB(TreatmentsManager.getTotalIOB(now).iob) + "  COB: " + GlucoseFactory.formatCOB(TreatmentsManager.getTotalCOB(now, CommonSettings.getCommonSetting(CommonSettings.COMMON_SETTING_DEFAULT_IOB_COB_ALGORITHM) == "openaps").cob);
 			}
+		}
+		
+		private function getPredictionText():String
+		{
+			var predictionsText:String = "";
+			
+			if (CommonSettings.getCommonSetting(CommonSettings.COMMON_SETTING_GLUCOSE_PREDICTIONS_ENABLED) == "true")
+			{
+				var predictionsLengthInMinutes:Number = Forecast.getCurrentPredictionsDuration();
+				if (!isNaN(predictionsLengthInMinutes))
+				{
+					var currentPrediction:Number = Forecast.getLastPredictiveBG(predictionsLengthInMinutes);
+					if (!isNaN(currentPrediction))
+					{
+						predictionsText = TimeSpan.formatHoursMinutesFromMinutes(predictionsLengthInMinutes, false) + " " + ModelLocator.resourceManagerInstance.getString('chartscreen','prediction_label') + ": " + (CommonSettings.getCommonSetting(CommonSettings.COMMON_SETTING_DO_MGDL) == "true" ? String(Math.round(currentPrediction)) : String(Math.round(BgReading.mgdlToMmol(currentPrediction * 10)) / 10)) + "\n";
+					}
+					else
+					{
+						predictionsText = TimeSpan.formatHoursMinutesFromMinutes(predictionsLengthInMinutes, false) + " " + ModelLocator.resourceManagerInstance.getString('chartscreen','prediction_label') + ": " + ModelLocator.resourceManagerInstance.getString('globaltranslations','not_available') + "\n";
+					}
+				}
+			}
+			
+			return predictionsText;
 		}
 		
 		private function getLeading(arrow:String):Number
@@ -506,10 +538,15 @@ package ui.screens
 			var textFormat:flash.text.TextFormat = sNativeFormat;
 			var maxTextWidth:int  = Constants.stageWidth - (Constants.isPortrait ? Constants.stageWidth * 0.2 : Constants.stageWidth * 0.1);
 			var maxTextHeight:int = Constants.stageHeight - Constants.headerHeight;
-			if (Constants.deviceModel == DeviceInfo.IPHONE_X_Xs && !Constants.isPortrait)
+			
+			if (Constants.deviceModel == DeviceInfo.IPHONE_X_Xs_XsMax_Xr && !Constants.isPortrait)
 				maxTextHeight -= maxTextHeight * 0.35;
 			
-			if (isNaN(maxTextWidth) || isNaN(maxTextHeight)) return;
+			if (CommonSettings.getCommonSetting(CommonSettings.COMMON_SETTING_GLUCOSE_PREDICTIONS_ENABLED) == "true")
+				maxTextHeight -= maxTextHeight * 0.30;
+			
+			if (isNaN(maxTextWidth) || isNaN(maxTextHeight)) 
+				return;
 			
 			var size:Number = Number(textFormat.size);
 			
@@ -562,6 +599,20 @@ package ui.screens
 			//Calculate Glucose Values and Update Labels
 			SystemUtil.executeWhenApplicationIsActive( calculateValues );
 			SystemUtil.executeWhenApplicationIsActive( updateInfo );
+		}
+		
+		private function onAPSPredictionRetrieved(e:PredictionEvent):void
+		{
+			if (!SystemUtil.isApplicationActive)
+				return;
+			
+			/* IOB / COB Display Label */
+			if (IOBCOBDisplay != null)
+			{
+				var now:Number = new Date().valueOf();
+				IOBCOBDisplay.fontStyles.color = timeAgoColor;
+				IOBCOBDisplay.text = getPredictionText() + "IOB: " + GlucoseFactory.formatIOB(TreatmentsManager.getTotalIOB(now).iob) + "  COB: " + GlucoseFactory.formatCOB(TreatmentsManager.getTotalCOB(now, CommonSettings.getCommonSetting(CommonSettings.COMMON_SETTING_DEFAULT_IOB_COB_ALGORITHM) == "openaps").cob);
+			}
 		}
 		
 		private function onUpdateTimer(event:TimerEvent):void
@@ -622,7 +673,7 @@ package ui.screens
 			{
 				var now:Number = new Date().valueOf();
 				IOBCOBDisplay.fontStyles.color = timeAgoColor;
-				IOBCOBDisplay.text = "IOB: " + GlucoseFactory.formatIOB(TreatmentsManager.getTotalIOB(now)) + "  COB: " + GlucoseFactory.formatCOB(TreatmentsManager.getTotalCOB(now));
+				IOBCOBDisplay.text = getPredictionText() + "IOB: " + GlucoseFactory.formatIOB(TreatmentsManager.getTotalIOB(now).iob) + "  COB: " + GlucoseFactory.formatCOB(TreatmentsManager.getTotalCOB(now, CommonSettings.getCommonSetting(CommonSettings.COMMON_SETTING_DEFAULT_IOB_COB_ALGORITHM) == "openaps").cob);
 			}
 		}
 		
@@ -710,7 +761,7 @@ package ui.screens
 			//Adjust label position
 			if (timeAgoDisplay != null && slopeDisplay != null)
 			{
-				timeAgoDisplay.x = Constants.deviceModel == DeviceInfo.IPHONE_X_Xs && !Constants.isPortrait && Constants.currentOrientation == StageOrientation.ROTATED_RIGHT ? 40 : 10;
+				timeAgoDisplay.x = Constants.deviceModel == DeviceInfo.IPHONE_X_Xs_XsMax_Xr && !Constants.isPortrait && Constants.currentOrientation == StageOrientation.ROTATED_RIGHT ? 40 : 10;
 				
 				if (CGMBlueToothDevice.isMiaoMiao() && miaoMiaoHitArea != null)
 				{
@@ -718,7 +769,7 @@ package ui.screens
 					miaoMiaoHitArea.x = timeAgoDisplay.x;
 				}
 				
-				slopeDisplay.x = Constants.stageWidth - slopeDisplay.width - (Constants.deviceModel == DeviceInfo.IPHONE_X_Xs && !Constants.isPortrait && Constants.currentOrientation == StageOrientation.ROTATED_LEFT ? 40 : 10);
+				slopeDisplay.x = Constants.stageWidth - slopeDisplay.width - (Constants.deviceModel == DeviceInfo.IPHONE_X_Xs_XsMax_Xr && !Constants.isPortrait && Constants.currentOrientation == StageOrientation.ROTATED_LEFT ? 40 : 10);
 			}
 			
 			SystemUtil.executeWhenApplicationIsActive( calculateValues );
@@ -727,7 +778,7 @@ package ui.screens
 		
 		private function onCreation(event:starling.events.Event):void
 		{
-			if (Constants.deviceModel == DeviceInfo.IPHONE_X_Xs && this.header != null)
+			if (Constants.deviceModel == DeviceInfo.IPHONE_X_Xs_XsMax_Xr && this.header != null)
 			{
 				if (Constants.isPortrait)
 				{
@@ -764,6 +815,11 @@ package ui.screens
 			TransmitterService.instance.removeEventListener(TransmitterServiceEvent.LAST_BGREADING_RECEIVED, onBgReadingReceived);
 			NightscoutService.instance.removeEventListener(FollowerEvent.BG_READING_RECEIVED, onBgReadingReceived);
 			this.removeEventListener(TouchEvent.TOUCH, onTouch);
+			
+			if (CommonSettings.getCommonSetting(CommonSettings.COMMON_SETTING_TREATMENTS_LOOP_OPENAPS_USER_ENABLED) == "true" && CommonSettings.getCommonSetting(CommonSettings.COMMON_SETTING_GLUCOSE_PREDICTIONS_ENABLED) == "true")
+			{
+				Forecast.instance.removeEventListener(PredictionEvent.APS_RETRIEVED, onAPSPredictionRetrieved);
+			}
 			
 			if(updateTimer != null)
 			{

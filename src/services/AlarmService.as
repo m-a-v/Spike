@@ -904,14 +904,23 @@ package services
 		private static function openSnoozePickerDialog(alertSetting:String, notificationId:int, notificationEvent:NotificationEvent, 
 													   snoozePickerClosedHandler:Function, 
 													   snoozeText:String, alertSnoozeIdentifier:String, snoozeValueSetter:Function, presnoozeResetFunction:Function = null):void {
+			
+			if (alertSetting == null) return;
+			
 			var listOfAlerts:FromtimeAndValueArrayCollection = FromtimeAndValueArrayCollection.createList(
 				alertSetting, true);
+			if (listOfAlerts == null) return;
+			
 			var alertName:String = listOfAlerts != null ? listOfAlerts.getAlarmName(Number.NaN, "", new Date()) : "";
+			if (alertName == null) return;
+			
 			var alertType:AlertType = Database.getAlertType(alertName);
+			if (alertType == null) return;
+			
 			myTrace("in openSnoozePickerDialog with id = " + NotificationService.notificationIdToText(notificationId) + ", cancelling notification");
 			Notifications.service.cancel(notificationId);
 			
-			if (listOfAlerts == null || alertName == null || alertType == null || snoozeValueMinutes == null || snoozeValueStrings == null)
+			if (snoozeValueMinutes == null || snoozeValueStrings == null)
 				return;
 			
 			var index:int = 0;
@@ -941,13 +950,17 @@ package services
 					(snoozeText != null && snoozeText == "snooze_text_fast_rise_alert")
 				)
 				{
-					SystemUtil.executeWhenApplicationIsActive
-					(
-						AlarmSnoozer.displaySnoozer,
-						ModelLocator.resourceManagerInstance.getString("alarmservice",snoozeText) + "\n" + BgGraphBuilder.unitizedString(BgReading.lastNoSensor().calculatedValue, CommonSettings.getCommonSetting(CommonSettings.COMMON_SETTING_DO_MGDL) == "true") + " " + GlucoseHelper.getGlucoseUnit(),
-						snoozeValueStrings,
-						index
-					);
+					var snoozerReading:BgReading = BgReading.lastNoSensor();
+					if (snoozerReading != null)
+					{
+						SystemUtil.executeWhenApplicationIsActive
+						(
+							AlarmSnoozer.displaySnoozer,
+							ModelLocator.resourceManagerInstance.getString("alarmservice",snoozeText) + "\n" + BgGraphBuilder.unitizedString(snoozerReading.calculatedValue, CommonSettings.getCommonSetting(CommonSettings.COMMON_SETTING_DO_MGDL) == "true") + " " + GlucoseHelper.getGlucoseUnit(),
+							snoozeValueStrings,
+							index
+						);
+					}
 				}
 				else
 				{
@@ -960,7 +973,7 @@ package services
 					);
 				}
 			} 
-			else if (notificationEvent.identifier == alertSnoozeIdentifier) {
+			else if (notificationEvent != null && notificationEvent.identifier == alertSnoozeIdentifier) {
 				snoozeValueSetter(alertType.defaultSnoozePeriodInMinutes);
 			}
 			
@@ -1572,10 +1585,17 @@ package services
 			listOfAlerts = FromtimeAndValueArrayCollection.createList(
 				CommonSettings.getCommonSetting(CommonSettings.COMMON_SETTING_CALIBRATION_REQUEST_ALERT), false);
 			if (listOfAlerts == null) return;
+			
 			alertValue = listOfAlerts.getValue(Number.NaN, "", now);
+			if (isNaN(alertValue)) return;
+			
 			alertName = listOfAlerts.getAlarmName(Number.NaN, "", now);
+			if (alertName == null) return;
+			
 			alertType = Database.getAlertType(alertName);
-			if (alertType != null && alertType.enabled && !isNaN(alertValue) && alertName != "") {
+			if (alertType == null) return;
+			
+			if (alertType.enabled && !isNaN(alertValue) && alertName != "") {
 				if ((now.valueOf() - _calibrationRequestLatestSnoozeTimeInMs) > _calibrationRequestSnoozePeriodInMinutes * TimeSpan.TIME_1_MINUTE
 					||
 					isNaN(_calibrationRequestLatestSnoozeTimeInMs)) {
@@ -2523,27 +2543,35 @@ package services
 		
 		private static function resetVeryLowAlertPreSnooze():void {
 			_veryLowAlertPreSnoozed = false;
+			LocalSettings.setLocalSetting(LocalSettings.LOCAL_SETTING_VERY_LOW_ALERT_PRESNOOZED, String(_veryLowAlertPreSnoozed), true, false);
 		}
 		private static function resetLowAlertPreSnooze():void {
 			_lowAlertPreSnoozed = false;
+			LocalSettings.setLocalSetting(LocalSettings.LOCAL_SETTING_LOW_ALERT_PRESNOOZED, String(_lowAlertPreSnoozed), true, false);
 		}
 		private static function resetVeryHighAlertPreSnooze():void {
 			_veryHighAlertPreSnoozed = false;
+			LocalSettings.setLocalSetting(LocalSettings.LOCAL_SETTING_VERY_HIGH_ALERT_PRESNOOZED, String(_veryHighAlertPreSnoozed), true, false);
 		}
 		private static function resetHighAlertPreSnooze():void {
 			_highAlertPreSnoozed = false;
+			LocalSettings.setLocalSetting(LocalSettings.LOCAL_SETTING_HIGH_ALERT_PRESNOOZED, String(_highAlertPreSnoozed), true, false);
 		}
 		private static function resetMissedreadingAlertPreSnooze():void {
 			_missedReadingAlertPreSnoozed = false;
+			LocalSettings.setLocalSetting(LocalSettings.LOCAL_SETTING_MISSED_READINGS_ALERT_PRESNOOZED, String(_missedReadingAlertPreSnoozed), true, false);
 		}
 		private static function resetPhoneMutedAlertPreSnooze():void {
 			_phoneMutedAlertPreSnoozed = false;
+			LocalSettings.setLocalSetting(LocalSettings.LOCAL_SETTING_PHONE_MUTED_ALERT_PRESNOOZED, String(_phoneMutedAlertPreSnoozed), true, false);
 		}
 		private static function resetFastDropAlertPreSnooze():void {
 			_fastDropAlertPreSnoozed = false;
+			LocalSettings.setLocalSetting(LocalSettings.LOCAL_SETTING_FAST_DROP_ALERT_PRESNOOZED, String(_fastDropAlertPreSnoozed), true, false);
 		}
 		private static function resetFastRiseAlertPreSnooze():void {
 			_fastRiseAlertPreSnoozed = false;
+			LocalSettings.setLocalSetting(LocalSettings.LOCAL_SETTING_FAST_RISE_ALERT_PRESNOOZED, String(_fastRiseAlertPreSnoozed), true, false);
 		}
 		
 		public static function veryLowAlertSnoozedUntilTimestamp():Number 

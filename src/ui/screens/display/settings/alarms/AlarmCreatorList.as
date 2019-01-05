@@ -120,7 +120,7 @@ package ui.screens.display.settings.alarms
 		
 		private function setupInitialState(glucoseUnit:String = null):void
 		{
-			if ((alarmData.alarmType == AlarmNavigatorData.ALARM_TYPE_PHONE_MUTED && alarmData.alarmID == CommonSettings.COMMON_SETTING_PHONE_MUTED_ALERT) || CGMBlueToothDevice.isBluKon())
+			if (alarmData.alarmType == AlarmNavigatorData.ALARM_TYPE_PHONE_MUTED || alarmData.alarmID == CommonSettings.COMMON_SETTING_PHONE_MUTED_ALERT || ((alarmData.alarmType == AlarmNavigatorData.ALARM_TYPE_TRANSMITTER_LOW_BATTERY || alarmData.alarmID == CommonSettings.COMMON_SETTING_BATTERY_ALERT) && CGMBlueToothDevice.isBluKon()))
 				hideValue = true;
 			
 			if (alarmData.alarmType == AlarmNavigatorData.ALARM_TYPE_GLUCOSE)
@@ -276,7 +276,7 @@ package ui.screens.display.settings.alarms
 			startTime.minimum = new Date(nowDate.fullYear, nowDate.month, nowDate.date, 0, 0);
 			startTime.maximum = new Date(nowDate.fullYear, nowDate.month, nowDate.date, 23, 58);
 			startTime.value = startDate;
-			if(Constants.deviceModel != DeviceInfo.IPHONE_2G_3G_3GS_4_4S_ITOUCH_2_3_4 && Constants.deviceModel != DeviceInfo.IPHONE_5_5S_5C_SE_ITOUCH_5_6 && Constants.deviceModel != DeviceInfo.IPHONE_6PLUS_6SPLUS_7PLUS_8PLUS && Constants.deviceModel != DeviceInfo.IPHONE_X_Xs && Constants.deviceModel != DeviceInfo.IPHONE_6_6S_7_8 && Constants.deviceModel != DeviceInfo.IPAD_MINI_1_2_3_4)
+			if(Constants.deviceModel != DeviceInfo.IPHONE_2G_3G_3GS_4_4S_ITOUCH_2_3_4 && Constants.deviceModel != DeviceInfo.IPHONE_5_5S_5C_SE_ITOUCH_5_6 && Constants.deviceModel != DeviceInfo.IPHONE_6PLUS_6SPLUS_7PLUS_8PLUS && Constants.deviceModel != DeviceInfo.IPHONE_X_Xs_XsMax_Xr && Constants.deviceModel != DeviceInfo.IPHONE_6_6S_7_8 && Constants.deviceModel != DeviceInfo.IPAD_MINI_1_2_3_4)
 				startTime.height = 160;
 			else if(Constants.deviceModel == DeviceInfo.IPAD_MINI_1_2_3_4)
 				startTime.height = 150;
@@ -286,7 +286,7 @@ package ui.screens.display.settings.alarms
 				startTime.height = 130;
 			else if(Constants.deviceModel == DeviceInfo.IPHONE_5_5S_5C_SE_ITOUCH_5_6)
 				startTime.height = 100;
-			else if(Constants.deviceModel == DeviceInfo.IPHONE_X_Xs)
+			else if(Constants.deviceModel == DeviceInfo.IPHONE_X_Xs_XsMax_Xr)
 				startTime.height = 60;
 			else if(Constants.deviceModel == DeviceInfo.IPHONE_2G_3G_3GS_4_4S_ITOUCH_2_3_4)
 				startTime.height = 60;
@@ -306,7 +306,7 @@ package ui.screens.display.settings.alarms
 			endTime.minimum = new Date(nowDate.fullYear, nowDate.month, nowDate.date, 0, 1);
 			endTime.maximum = new Date(nowDate.fullYear, nowDate.month, nowDate.date, 23, 59);
 			endTime.value = endDate;
-			if(Constants.deviceModel != DeviceInfo.IPHONE_2G_3G_3GS_4_4S_ITOUCH_2_3_4 && Constants.deviceModel != DeviceInfo.IPHONE_5_5S_5C_SE_ITOUCH_5_6 && Constants.deviceModel != DeviceInfo.IPHONE_6PLUS_6SPLUS_7PLUS_8PLUS && Constants.deviceModel != DeviceInfo.IPHONE_X_Xs && Constants.deviceModel != DeviceInfo.IPHONE_6_6S_7_8 && Constants.deviceModel != DeviceInfo.IPAD_MINI_1_2_3_4)
+			if(Constants.deviceModel != DeviceInfo.IPHONE_2G_3G_3GS_4_4S_ITOUCH_2_3_4 && Constants.deviceModel != DeviceInfo.IPHONE_5_5S_5C_SE_ITOUCH_5_6 && Constants.deviceModel != DeviceInfo.IPHONE_6PLUS_6SPLUS_7PLUS_8PLUS && Constants.deviceModel != DeviceInfo.IPHONE_X_Xs_XsMax_Xr && Constants.deviceModel != DeviceInfo.IPHONE_6_6S_7_8 && Constants.deviceModel != DeviceInfo.IPAD_MINI_1_2_3_4)
 				endTime.height = 160;
 			else if(Constants.deviceModel == DeviceInfo.IPAD_MINI_1_2_3_4)
 				endTime.height = 150;
@@ -316,7 +316,7 @@ package ui.screens.display.settings.alarms
 				endTime.height = 130;
 			else if(Constants.deviceModel == DeviceInfo.IPHONE_5_5S_5C_SE_ITOUCH_5_6)
 				endTime.height = 100;
-			else if(Constants.deviceModel == DeviceInfo.IPHONE_X_Xs)
+			else if(Constants.deviceModel == DeviceInfo.IPHONE_X_Xs_XsMax_Xr)
 				endTime.height = 60;
 			else if(Constants.deviceModel == DeviceInfo.IPHONE_2G_3G_3GS_4_4S_ITOUCH_2_3_4)
 				endTime.height = 60;
@@ -371,7 +371,7 @@ package ui.screens.display.settings.alarms
 				
 				return list;
 			};
-			if(Constants.deviceModel == DeviceInfo.IPHONE_X_Xs)
+			if(Constants.deviceModel == DeviceInfo.IPHONE_X_Xs_XsMax_Xr)
 			{
 				alertTypeList.buttonFactory = function():Button
 				{
@@ -584,16 +584,16 @@ package ui.screens.display.settings.alarms
 			alarmData.startTimeStamp = (Number(alarmData.startHour) * 60 * 60 * 1000) + (Number(alarmData.startMinutes) * 60 * 1000);
 				
 			/* Value */
-			if (alarmData.alarmType == AlarmNavigatorData.ALARM_TYPE_PHONE_MUTED && alarmData.alarmID == CommonSettings.COMMON_SETTING_PHONE_MUTED_ALERT)
+			if (alarmData.alarmType == AlarmNavigatorData.ALARM_TYPE_PHONE_MUTED || alarmData.alarmID == CommonSettings.COMMON_SETTING_PHONE_MUTED_ALERT)
 				alarmData.value = 0;
-			else if (alarmData.alarmType == AlarmNavigatorData.ALARM_TYPE_TRANSMITTER_LOW_BATTERY && alarmData.alarmID == CommonSettings.COMMON_SETTING_BATTERY_ALERT)
+			else if (alarmData.alarmType == AlarmNavigatorData.ALARM_TYPE_TRANSMITTER_LOW_BATTERY || alarmData.alarmID == CommonSettings.COMMON_SETTING_BATTERY_ALERT)
 			{
 				if (!CGMBlueToothDevice.isBluKon())
 					alarmData.value = valueStepper.value;
 				else
 					alarmData.value = 5;
 			}
-			else if ((alarmData.alarmType == AlarmNavigatorData.ALARM_TYPE_MISSED_READING && alarmData.alarmID == CommonSettings.COMMON_SETTING_MISSED_READING_ALERT) || (alarmData.alarmType == AlarmNavigatorData.ALARM_TYPE_CALIBRATION && alarmData.alarmID == CommonSettings.COMMON_SETTING_CALIBRATION_REQUEST_ALERT))
+			else if ((alarmData.alarmType == AlarmNavigatorData.ALARM_TYPE_MISSED_READING || alarmData.alarmID == CommonSettings.COMMON_SETTING_MISSED_READING_ALERT) || (alarmData.alarmType == AlarmNavigatorData.ALARM_TYPE_CALIBRATION || alarmData.alarmID == CommonSettings.COMMON_SETTING_CALIBRATION_REQUEST_ALERT))
 				alarmData.value = valueStepper.value;
 			else
 			{

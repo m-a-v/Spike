@@ -1,3 +1,135 @@
+3.5.1
+FEATURE: Ability to press on prediction markers located on the chart to visualize details. (Miguel)
+ENHANCEMENT: Ability to set ISF with 0.2 increments in Settings > Treatments > Profile. (Miguel)
+ENHANCEMENT: Improvements to Turkish, Norwegian, Russian, French & Finnish translations. (Translators) 
+FIX: Small bug fixes to the predictions pill. (Miguel)
+FIX: Don't show the treatments menu (upper right + button) when not needed. (Miguel)
+FIX: Fixes a bug that made predictions temporarily disappear from the scroller graph after a calibration. (Miguel)
+FIX: Fixes a bug that created an empty gap of readings on the chart when enabling/disabling predictions if there was less than 24h of readings in Spike. (Miguel)
+FIX: Attempt to fix an issue with the main left menu on iPad Pro 12" in landscape. This fix is untested. (Miguel)
+FIX: A LOT of other small bug fixes and improvements that should increase overall app stability and speed. (Miguel)
+
+3.5.0
+FEATURE: Glucose predictions are here! (Miguel)
+1) Spike now incorporates a heavily modified and optimized version of the oref0 (OpenAPS) algorithm bringing the power of Artificial Pancreas Systems to the end user.
+2) Users now have access to glucose predictions of up to 4h using a single prediction curve or multiple prediction curves (IOB, COB, UAG and ZT).
+3) Available prediction curves:
+- IOB: This is a predicted BG curve that is based on insulin only. If no IOB is present, this predicted BG curve will only take into account the current BG trend and things like "BG momentum".
+- COB: Uses carbs and insulin (if available) together in predicting the BG curve.
+- UAG: Spike is able to automatically detect "floating carbs" (unlogged carbs or glucose output originating from stress, adrenaline, etc.) and use it along insulin (if available) together in predicting the BG curve. This means that even if you eat carbs and don't log them, Spike will still be able to automatically detect them and account for them when calculating predictions.
+- ZT: Prediction BG curve representing a scenario when a zero temp is given (zero basal insulin). ZT predicts how BG SHOULD behave in the absence of basal insulin.
+4) New prediction pill available in the chart screen that provides a plethora of new information to the user:
+- Time until glucose reaches the user's high/low threshold.
+- Treatments outcome: Final BG outcome of all active insulin/carbs treatments. This is the same outcome given by the Bolus Calculator. 
+- BG velocity per minute.
+- Several prediction settings like enable/disable, duration, include/exclude IOB/COB, etc.
+- Extra information like deviation, BG impact, eventual BG, etc.
+5) Some of the colors used to display the prediction curves can be changed in Settings > Chart.
+6) Predictions are also available in the fullscreen view, today widget, apple watch complication and apple watch dedicated app.
+7) Ability to upload predictions to Nightscout and visualize them directly from the browser. 
+8) Predictions are available to masters and followers as well as Loop/OpenAPS Users that have the "Loop/OpenAPS User" option enabled in Settings > Treatments (please continue to have this option enabled).
+9) Much, much more! Please read the WiKi here: https://github.com/SpikeApp/Spike/wiki/Glucose-Predictions
+FEATURE: New IOB & COB algorithms! Spike can now use exponential insulin curves as well as the OpenAPS (oref0) COB algorithm. (Miguel).
+1) Users can still choose between the current IOB/COB algorithm (ported from Nightscout) or the new (more precise) oref0 IOB/COB algorithm. Head over to Settings > Treatments > Profile to choose. The OpenAPS (oref0) algorithm is highly recommended due to improved accuracy.
+2) The new IOB algorithm supports bilinear and exponential curves. Exponential curves are MUCH more precise and VERY close to the same insulin curves observed in trials.
+3) When using the exponential curve the user can customize the DIA and PEAK time of the insulin, meaning it can fully customize the insulin curve to his/her desire. Customization is done in real time while Spike draws the insulin curve based on the user's DIA and PEAK for a realistic visual representation.
+4) When using the exponential curve Spike now comes bundled with some predefined presets for Apidra, Humalog, Novolog, Novorapid, etc. Both for adults and children. Choose your preset and Spike will automatically draw your insulin curve.
+5) Please read a detailed explanation of the new IOB algorithm and the benefits of the new insulin curves in Settings > Treatments > Profile > Algorithm > Show Details.
+6) The new COB algorithm (heavily modified oref0) now analyzes in real time glucose trends to determine how much carbs have been absorbed. Instead of assuming a linear absorption model like the Nightscout algorithm, the new COB algorithm is intelligent enough to determine how much carbs have been absorbed by constantly analyzing the glucose trend in real time.
+7) More info available in the new IOB/COB wiki available here: https://github.com/SpikeApp/Spike/wiki/IOB-COB-Algorithms
+FEATURE: Due to the increased complexity of the new IOB/COB algorithm as well as glucose predictions and in order to avoid constant mathematical calculations that would decrease battery life, a new (from scratch) intelligent cache system has been coded so calculations are only done once and then cached and ready to be sent to all the different services inside Spike. Caches are also saved in Spike's internal database so they can survive app/system restarts. They can be cleared by going to Settings > Maintenance > Internal Cache > Clear although there should be no need to do it as Spike creates and clears caches automatically. (Miguel) 
+FEATURE: Completely redesigned insulin absorption curves, the ones available when pressing the IOB/COB pills in the main chart. When pressing the IOB the user now has 2 absorption curves, the IOB one that was already present in previous versions and a new one that represents insulin activity and even tells the user how much insulin is being absorbed per minute as well as how close/far the user is from the insulin peak. New absorption curves wiki here: https://github.com/SpikeApp/Spike/wiki/IOB-COB-Absorption-Curves (Miguel)
+FEATURE: Sensor noise! Spike can now detect sensor noise (clean, light, medium, heavy). To check the current sensor noise just press the +Info pill on the main chart. To check sensor noise of past glucose readings just scroll back to the desired reading and press the +Info pill. Sensor noise is also uploaded to Nightscout and is available to both masters and followers. (Miguel)
+FEATURE: Also added BAGE to the +Info pill. (Miguel)
+FEATURE: Added Turkish Translation. Special thanks to Mustafa Gülcan. 
+ENHANCEMENT: Improved alarm snoozer popup. When an alarm fires the user now has more options to choose from in the alarm snoozer popup as well as a better layout. (Miguel).
+ENHANCEMENT: Some improvements have been made to the connection logic between the dedicated Apple Watch app and the iOS app. (Miguel)
+ENHANCEMENT: For Loop/OpenAPS users, Spike can now display negative values in the IOB pill. Useful for zero-temp (no basal) scenarios. (Miguel)
+ENHANCEMENT: Reverted back the /Pebble endpoint to also display in mmol as it seems some Pebble watch faces don't do the conversion automatically. (Miguel)
+ENHANCEMENT: Upgraded Spike's internal Dexcom Share server to add compatibility with new Loop versions (collector name, manufacturer, fw version, etc. are now also sent to Loop). (Miguel)
+ENHANCEMENT: Added a warning to the readings screen. If by some reason the user has more than 500 readings in the last 24h, Spike will only display the latest 500 readings in order to avoid crashes. (Miguel)
+ENHANCEMENT: Added insulin precision of 0.05U to the Bolus Calculator. Available in Settings > Treatments > Bolus Calculator. (Miguel)
+ENHANCEMENT: When scanning foods, if Spike only returns one hit it will auto select that food from the search results list to speed up the workflow process. (Miguel)
+ENHANCEMENT: Bolus Calculator popup can now be dismissed when pressing anywhere outside. (Miguel)
+ENHANCEMENT: Improvements to the Russian and Norwegian translations. Special thanks to our beloved translators!
+ENHANCEMENT: Improvements on how the treatments menu and the +info menu are rendered and positioned on small screen devices (eg: iPhone 4s). (Miguel)
+ENHANCEMENT: When pressing a treatment on the chart the approximate BG value recorded at the time the treatment was inserted is now displayed on the popup. (Miguel)
+ENHANCEMENT: Added a button on the Help screen (main menu) that links to all available Spike wikis. (Miguel)
+FIX: Bolus Calculator popup should now display correctly when switching from portrait to landscape and vice-versa. (Miguel)
+FIX: Several small bug fixes in the Bolus Calculator logic to address some bugs reported by users. (Miguel)
+FIX: When using Spike in Italian, languages were not listed correctly in the speech output settings (e.g. instead of Italian, it was Portuguese). (Sascha)
+FIX: Many more small fixes and improvements. Too many to list here. (Miguel)
+
+3.0.2
+ENHANCEMENT: Optimizations to the IOB algorithm that will slightly increase overall battery life.
+FIX: One more small fix for the logic behind selecting the current active profile in specific timezones.
+
+3.0.1
+FIX: Addresses an issue that made Spike crash on some devices. Sorry about that! (Miguel)
+FIX: Fixes an issue that might prevent Spike from getting the correct profile on some timezones. (Miguel)
+
+3.0.0
+FEATURE: Bolus Calculator! Spike now comes bundled with a bolus calculator with the following features: (Miguel)
+1) Ability to tell you how much carbs are needed to correct a low.
+2) Ability to tell you how much insulin is needed to correct a high.
+3) Ability to tell you how much insulin is needed to cover carbs in a meal you're about to eat.
+4) All calculations take into account current blood glucose level, glucose trend arrow, current IOB and COB. User has the option, in real time, to enable or disable any of these options.
+5) If adding carbs to the calculator, user has the ability to choose carb type (fast, medium, slow) and a carb offset in minutes in case he/she plans to eat the carbs before or after the insulin bolus.
+6) Ability to choose between multiple insulin types when insulin is required for the final treatment suggested by the calculator.
+7) Ability to make adjustments to the final calculations for before/after exercise. Before and after exercise insulin requirements decrease (more insulin sensitivity). User can select, in the calculator, if he/she is adding the treatment before or after performing exercise, the intensity of the exercise (low, moderate, high) as well as the duration of the exercise bout. Spike will give a suggested insulin % reduction for the final calculations. User has the option to tweak the suggestion to his/her liking and the calculator will learn from it so the user doesn't have to tweak it again for subsequent treatments.
+8) Ability to make adjustments to the final calculations for sickness periods. During sickness insulin requirements increase (more insulin resistance). User has the option to add an increase % of insulin to the final calculations. The increase amount is completely customizable.
+10) Ability to ask Spike to notify the user for an extended bolus. Normally, when consuming high fat foods, an extended bolus is required some time afterwards (ex: pizza). Just ask Spike to notify you at a specific time. User can also select any sound available in the alarms library for the extended bolus notification.
+11) The calculator is smart enough to tell the user the glucose outcome without the suggested treatment (carbs/insulin) and the projected glucose outcome with the calculator suggested treatment.
+12) If the calculator only suggests insulin to the final treatment, it will be added as a bolus. Only carbs will be added as a carb treatment. Insulin and carbs will be added as a meal. All automatically after pressing the ADD button.
+13) Final suggestion given can be tweaked by the user if he/she so chooses to. As the user changes the suggested insulin/carbs given by the calculator it will be shown, in real time, the glucose outcome of the changes.
+14) Several settings are available for the calculator like insulin precision (0.1, 0.5, 1.0) for users with pumps or more/less precise pens. Same for carbs (0.5, 1.0). There's also settings for colors, layout, etc.
+15) WiKi on how to use the calculator is available here: https://github.com/SpikeApp/Spike/wiki/Bolus-Calculator
+
+FEATURE: Food Manager! Spike now comes bundled with a food manager with access to one million foods worldwide (not just US). Some features: (Miguel)
+1) Ability to search nutritional information from 3 online databases: FatSecret, Open Food Facts & USDA.
+2) Ability to scan food barcodes directly from your phone's camera. Point your camera to the food barcode and Spike will list you all nutritional information so you can easily add the food to your final treatment,
+3) Ability to save foods to Spike's local database for offline use.
+4) Ability to create recipes that can easily be added over and over to your treatments.
+5) Ability to manually add your own custom foods to Spike.
+6) Ability to select multiple serving sizes for each food. Spike will do nutritional calculations in real time based on the serving size and unit.
+7) Spike will show detailed nutritional information like proteins, fats, carbs, fiber, etc.
+8) Ability to subtract fiber from your final carb calculations. You can subtract the entire fiber or just half the fiber.
+10) Ability, after selecting a food, to visit the food's webpage with additional information and photos.
+11) The food manager can be accessed directly when adding a meal, carb or bolus calculator treatment. After your select the foods you want to eat Spike will automatically calculate total carbs and add them to the treatment. All your foods as well as quantity can also be imported to the treatment's notes, automatically.
+10) Several settings available in a dedicated settings screen like subtract entire or just half fiber (when the user so chooses to), automatically search foods as you type, preferred food database, etc.
+11) Wiki on how to use the food manager is available here: https://github.com/SpikeApp/Spike/wiki/Food-Manager
+
+FEATURE: Extended profile in Spike with ability to use different profiles for different times of the day. The profile now supports: (Miguel)
+1) Start time. The profile will end at the start time of the next profile. If only one profile is added then that profile will be active for the entire day.
+2) ISF (Insulin Sensitivity Factor), I:C (Insulin-To-Carb Ratio) and desired BG target. All these parameters are needed for the bolus calculator to work.
+3) Set how much insulin is needed to correct a 45º upward arrow, 90º upward arrow, double 90º upward arrows.  All this will be used by the bolus calculator.
+4) Set how much carbs are needed to correct a 45º downward arrow, 90º downward arrow, double 90º downward arrows.  All this will be used by the bolus calculator.
+5) User now has the option to display the current BG target of the active profile in the main chart using a new horizontal dashed line. This line can have a different color than the normal threshold lines. Change it in settings -> chart.
+
+FEATURE: Ability to set a quiet time for App Center in-app updates. If device is in quiet time Spike will not warn you if a new App Center update is available. Configure the quiet time in settings -> maintenance. (Miguel) 
+FEATURE: Added Danish, Finnish, Noreweigan and Swedish languages to the speech functionality. Available in settings -> speech. (Miguel)
+FEATURE: Ability to snooze all alarms from the popup that appears after a single alarm is fired. (Miguel)
+FEATURE: Ability to show/hide glucose threshold lines on the main chart (urgent low, low, target, high, urgent high). Options availabe in settings -> chart. (Miguel)
+FEATURE: Ability to change glucose line thickness when the main chart is set to line. Change it in settings -> chart. (Miguel)
+ENHANCEMENT: Improvements to Spike's internal COB algorithm to be more in sync with Nightscout's algorithm. This also makes Spike's COB algorithm behave better when multiple carb treatments are stacked. Spike and Nightscout COB algorithms will only be in sync for treatments that use a carb type with an absorption delay of 20 minutes. This is because Nightscout only supports absorption delays of 20min while Spike supports multiple absorption delays (fast, medium and slow available in Settings -> Treatments -> Profile). You might notice a small difference of up to 0.5 in the COB result between Spike and Nightscout, this is due to the fact that Spike refreshes COB calculations at different paces than Nightscout. It's strongly advised that all users set a ISF and I:C in Settings -> Treatments -> Profile to make COB calculations more accurate. (Miguel)
+ENHANCEMENT: Spike will now respect the override system volume setting when previewing alert sounds in settings -> alert types. (Miguel)
+ENHANCEMENT: Some enhancements to the chart layout in Spike's Apple Watch app. (Miguel)
+ENHANCEMENT: Glucose values in the readings screen (three dots menu -> readings) now also display delta. (Miguel)
+FIX: The Pebble endpoint on Spike's internal server now returns the sgv value always in mg/dL. (Miguel)
+FIX: Workaround for the need to swipe twice from the screen bottom on iPhone X or above to close Spike. (Miguel)
+FIX: Fix for needing to restart phone the first time the user tries to connect to a MiaoMiao device. (Johan)
+FIX: Fix for default insulin not always being displayed first when adding treatments. (Sascha)
+FIX: New sensors starts uploaded to Nightscout would not persist after 24/48h (SAGE). All should be fixed now. (Miguel)
+FIX: Treatments deleted by Masters or directly in Nightscout were not being removed from Spike's main chart until Spike was restarted. All is fixed now. (Miguel) 
+FIX: Fixes a bug that would incorrectly select the active main menu button after rotating the device. (Miguel)
+FIX: Fixes an issue in speech where positive deltas where incorrectly spoken when using certain voices bundled with iOS. (Miguel)
+FIX: As usual, a lot of other small bug fixes and enhancements. (Miguel)
+
+2.5.3
+ENHANCEMENT: Full iPhone Xr & Xs Max support. Spike is now compatible with all new iPhone and Apple Watch models. (Miguel)
+FIX: Fixes an issue where Spike would overwrite combo bolus treatments inserted in Nightscout. (Miguel)
+FIX: Fixes an issue that prevented some users to modify alarm values. (Miguel)
+
 2.5.2
 FEATURE: Spike will now automatically check for new updates in App Center and notify the user only if the App Center version is newer than the one currently installed. The user will be presented with a pop up showing options to download the update, ignore it or remind later. This feature is enabled by default for all users but can be disabled in Settings -> Maintenance -> Check For Updates. (Miguel) 
 FEATURE: Spike can now override the device volume when playing alarms. You can set a custom volume in Settings -> Alarms -> Override System Volume. Before playing an alarm sound Spike will change your device volume to the value you defined in Settings, play the alarm and then restore the device volume to how it was before. This feature should avoid missing alarms when your device volume is too low or set to zero. (Miguel)

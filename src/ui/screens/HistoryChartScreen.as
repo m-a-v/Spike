@@ -46,8 +46,8 @@ package ui.screens
 	import ui.AppInterface;
 	import ui.chart.DistributionChart;
 	import ui.chart.GlucoseChart;
-	import ui.chart.GraphLayoutFactory;
-	import ui.chart.PieDistributionSection;
+	import ui.chart.layout.GraphLayoutFactory;
+	import ui.chart.visualcomponents.PieDistributionSection;
 	import ui.screens.display.LayoutFactory;
 	import ui.shapes.SpikeLine;
 	
@@ -437,12 +437,20 @@ package ui.screens
 		private function createChart():void
 		{	
 			//When in landscape mode and device is iPhone X, make the header height same as oher models, we don't need to worry about the extra status bar size
-			if (Constants.deviceModel == DeviceInfo.IPHONE_X_Xs)
+			if (this.header != null)
 			{
-				if (Constants.isPortrait)
+				if (Constants.deviceModel == DeviceInfo.IPHONE_X_Xs_XsMax_Xr)
 				{
-					this.header.height = 123;
-					this.header.maxHeight = 123;	
+					if (Constants.isPortrait)
+					{
+						this.header.height = 123;
+						this.header.maxHeight = 123;	
+					}
+					else
+					{
+						this.header.height = 93;
+						this.header.maxHeight = 93;
+					}
 				}
 				else
 				{
@@ -450,17 +458,12 @@ package ui.screens
 					this.header.maxHeight = 93;
 				}
 			}
-			else
-			{
-				this.header.height = 93;
-				this.header.maxHeight = 93;
-			}
 			
-			var availableScreenHeight:Number = Constants.stageHeight - this.header.height;
+			var availableScreenHeight:Number = Constants.stageHeight - (this.header != null ? this.header.height : 93);
 			Constants.isPortrait ? glucoseChartTopPadding = 7 : glucoseChartTopPadding = 0;
 			if (Constants.deviceModel == DeviceInfo.IPHONE_2G_3G_3GS_4_4S_ITOUCH_2_3_4) glucoseChartTopPadding = 0;
 			if (glucoseChartTopPadding == 0) availableScreenHeight += 7;
-			if (Constants.deviceModel == DeviceInfo.IPHONE_X_Xs)
+			if (Constants.deviceModel == DeviceInfo.IPHONE_X_Xs_XsMax_Xr)
 				availableScreenHeight -= 15; //To avoid lower notch
 			
 			mainChartHeight = availableScreenHeight;
@@ -479,7 +482,7 @@ package ui.screens
 			//Create and setup glucose chart
 			var chartWidth:Number = Constants.stageWidth;
 			var chartX:Number = 0;
-			if (Constants.deviceModel == DeviceInfo.IPHONE_X_Xs && !Constants.isPortrait)
+			if (Constants.deviceModel == DeviceInfo.IPHONE_X_Xs_XsMax_Xr && !Constants.isPortrait)
 			{
 				chartWidth -= 40;
 				if (Constants.currentOrientation == StageOrientation.ROTATED_RIGHT)
@@ -488,7 +491,7 @@ package ui.screens
 					chartX = 10;
 			}
 			
-			glucoseChart = new GlucoseChart(selectedTimelineRange, chartWidth, mainChartHeight, true, true, true, true);
+			glucoseChart = new GlucoseChart(selectedTimelineRange, chartWidth, mainChartHeight, true, true, true, true, true);
 			glucoseChart.x = Math.round(chartX);
 			glucoseChart.y = Math.round(glucoseChartTopPadding);
 			glucoseChart.dataSource = chartData;
@@ -506,7 +509,8 @@ package ui.screens
 					createPieChart();
 			}
 			
-			Constants.headerHeight = this.header.maxHeight;
+			if (this.header != null)
+				Constants.headerHeight = this.header.maxHeight;
 		}
 		
 		private function redrawChart():void
@@ -524,7 +528,7 @@ package ui.screens
 				
 				var chartWidth:Number = Constants.stageWidth;
 				var chartX:Number = 0;
-				if (Constants.deviceModel == DeviceInfo.IPHONE_X_Xs && !Constants.isPortrait)
+				if (Constants.deviceModel == DeviceInfo.IPHONE_X_Xs_XsMax_Xr && !Constants.isPortrait)
 				{
 					chartWidth -= 40;
 					if (Constants.currentOrientation == StageOrientation.ROTATED_RIGHT)
@@ -534,7 +538,7 @@ package ui.screens
 				}
 				
 				//Create new chart
-				glucoseChart = new GlucoseChart(selectedTimelineRange, chartWidth, mainChartHeight, true, true, true, true);
+				glucoseChart = new GlucoseChart(selectedTimelineRange, chartWidth, mainChartHeight, true, true, true, true, true);
 				glucoseChart.x = Math.round(chartX);
 				glucoseChart.y = Math.round(glucoseChartTopPadding);
 				glucoseChart.dataSource = chartData;
@@ -687,7 +691,7 @@ package ui.screens
 			var sectionMultiplier:Number = 3;
 			if (Constants.deviceModel == DeviceInfo.IPHONE_2G_3G_3GS_4_4S_ITOUCH_2_3_4)
 				sectionMultiplier = 2.5;
-			else if (Constants.deviceModel == DeviceInfo.IPHONE_X_Xs)
+			else if (Constants.deviceModel == DeviceInfo.IPHONE_X_Xs_XsMax_Xr)
 				sectionMultiplier = 3.1;
 			
 			pieChartHeight = (sectionMultiplier * dummyPieChartStatsSection.title.height) + (sectionMultiplier * dummyPieChartStatsSection.message.height);

@@ -3,6 +3,7 @@ package ui.screens
 	import flash.geom.Point;
 	import flash.system.System;
 	
+	import database.CGMBlueToothDevice;
 	import database.CommonSettings;
 	
 	import events.ScreenEvent;
@@ -97,20 +98,30 @@ package ui.screens
 			moreButton.addEventListener( Event.TRIGGERED, onMoreButtonTriggered );
 			moreButton.validate();
 			
-			/* Add treatments to the header */
-			treatmentsTexture = MaterialDeepGreyAmberMobileThemeIcons.addTexture;
-			treatmentsImage = new Image(treatmentsTexture);
-			treatmentsButton = new Button();
-			treatmentsButton.defaultIcon = treatmentsImage;
-			treatmentsButton.styleNameList.add( BaseMaterialDeepGreyAmberMobileTheme.THEME_STYLE_NAME_BUTTON_HEADER_QUIET_ICON_ONLY );
-			treatmentsButton.addEventListener( Event.TRIGGERED, onTreatmentButtonTriggered );
-			treatmentsButton.validate();
-			
-			/* Populate Header */
-			headerProperties.rightItems = new <DisplayObject>[
-				treatmentsButton,
-				moreButton
-			];
+			if ((CommonSettings.getCommonSetting(CommonSettings.COMMON_SETTING_TREATMENTS_ENABLED) == "true" && CommonSettings.getCommonSetting(CommonSettings.COMMON_SETTING_TREATMENTS_ON_CHART_ENABLED) == "true") || !CGMBlueToothDevice.isFollower()) 
+			{
+				/* Add treatments to the header */
+				treatmentsTexture = MaterialDeepGreyAmberMobileThemeIcons.addTexture;
+				treatmentsImage = new Image(treatmentsTexture);
+				treatmentsButton = new Button();
+				treatmentsButton.defaultIcon = treatmentsImage;
+				treatmentsButton.styleNameList.add( BaseMaterialDeepGreyAmberMobileTheme.THEME_STYLE_NAME_BUTTON_HEADER_QUIET_ICON_ONLY );
+				treatmentsButton.addEventListener( Event.TRIGGERED, onTreatmentButtonTriggered );
+				treatmentsButton.validate();
+				
+				/* Populate Header */
+				headerProperties.rightItems = new <DisplayObject>[
+					treatmentsButton,
+					moreButton
+				];
+			}
+			else
+			{
+				/* Populate Header */
+				headerProperties.rightItems = new <DisplayObject>[
+					moreButton
+				];
+			}
 		}
 		
 		private function setupEventListeners():void
@@ -137,34 +148,63 @@ package ui.screens
 			treatmentsList.addEventListener(TreatmentsList.CLOSE, onCloseCallOut);
 			if (Constants.deviceModel == DeviceInfo.IPHONE_2G_3G_3GS_4_4S_ITOUCH_2_3_4 && treatmentsEnabled)
 			{
+				if (iphone4DummyMarker != null) iphone4DummyMarker.removeFromParent(true);
 				iphone4DummyMarker = new Sprite();
 				var globalpoint:Point = treatmentsButton.localToGlobal(new Point(treatmentsButton.width / 2, treatmentsButton.height / 2));
 				iphone4DummyMarker.x = globalpoint.x;
 				iphone4DummyMarker.y = globalpoint.y + 15;
 				Starling.current.stage.addChild(iphone4DummyMarker);
+				
 				callout = Callout.show( treatmentsList, iphone4DummyMarker );
+				callout.addEventListener(Event.CLOSE, onCloseCallOut);
 			}
 			else
+			{
 				callout = Callout.show( treatmentsList, treatmentsButton );
+				callout.addEventListener(Event.CLOSE, onCloseCallOut);
+			}
 		}
 		
 		protected function onMoreButtonTriggered():void 
 		{
 			extraOptionsList = new ExtraOptionsList();
 			extraOptionsList.addEventListener(ExtraOptionsList.CLOSE, onCloseCallOut);
-			callout = Callout.show( extraOptionsList, moreButton );
+			if (Constants.deviceModel == DeviceInfo.IPHONE_2G_3G_3GS_4_4S_ITOUCH_2_3_4)
+			{
+				if (iphone4DummyMarker != null) iphone4DummyMarker.removeFromParent(true);
+				iphone4DummyMarker = new Sprite();
+				var globalpoint:Point = moreButton.localToGlobal(new Point(moreButton.width / 2, moreButton.height / 2));
+				iphone4DummyMarker.x = globalpoint.x;
+				iphone4DummyMarker.y = globalpoint.y + 15;
+				Starling.current.stage.addChild(iphone4DummyMarker);
+				
+				callout = Callout.show( extraOptionsList, iphone4DummyMarker );
+				callout.addEventListener(Event.CLOSE, onCloseCallOut);
+			}
+			else
+			{
+				callout = Callout.show( extraOptionsList, moreButton );
+				callout.addEventListener(Event.CLOSE, onCloseCallOut);
+			}
 			
 			Callout.stagePaddingRight = -5
 		}
 		
 		private function onCloseCallOut(e:Event):void
 		{
+			disposeOnScreenComponents();
+			
 			if (callout != null)
 			{
-				callout.close();
+				callout.removeFromParent();
+				callout.removeEventListener(Event.CLOSE, onCloseCallOut);
+				callout.disposeContent = true;
 				callout.dispose();
 				callout = null;
 			}
+			
+			System.pauseForGCIfCollectionImminent(0);
+			System.gc();
 		}
 		
 		private function toggleMenu():void 
@@ -181,15 +221,33 @@ package ui.screens
 		/**
 		 * Utility
 		 */
-		override public function dispose():void
+		private function disposeOnScreenComponents():void
 		{
-			if (callout != null)
+			if (treatmentsList != null)
 			{
-				callout.removeFromParent();
-				callout.dispose();
-				callout = null;
+				treatmentsList.removeEventListener(TreatmentsList.CLOSE, onCloseCallOut);
+				treatmentsList.removeFromParent();
+				treatmentsList.dispose();
+				treatmentsList = null;
 			}
 			
+			if (extraOptionsList != null)
+			{
+				extraOptionsList.removeEventListener(ExtraOptionsList.CLOSE, onCloseCallOut);
+				extraOptionsList.removeFromParent();
+				extraOptionsList.dispose();
+				extraOptionsList = null;
+			}
+			
+			if (iphone4DummyMarker != null)
+			{
+				iphone4DummyMarker.removeFromParent(true);
+				iphone4DummyMarker = null;
+			}
+		}
+		
+		override public function dispose():void
+		{
 			if (menuButtonTexture != null)
 			{
 				menuButtonTexture.dispose();
@@ -277,15 +335,24 @@ package ui.screens
 			
 			if (iphone4DummyMarker != null)
 			{
-				Starling.current.stage.removeChild(iphone4DummyMarker);
 				iphone4DummyMarker.removeFromParent();
 				iphone4DummyMarker.dispose();
 				iphone4DummyMarker = null;
 			}
 			
-			System.pauseForGCIfCollectionImminent(0);
+			if (callout != null)
+			{
+				callout.removeEventListener(Event.CLOSE, onCloseCallOut);
+				callout.removeFromParent();
+				callout.disposeContent = true;
+				callout.dispose();
+				callout = null;
+			}
 			
 			super.dispose();
+			
+			System.pauseForGCIfCollectionImminent(0);
+			System.gc();
 		}
 	}
 }
