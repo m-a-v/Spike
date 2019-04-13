@@ -28,7 +28,6 @@
 		961EB7732089460D005F0E9F /* ExtensionDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 961EB7722089460D005F0E9F /* ExtensionDelegate.swift */; };
 		961EB7752089460D005F0E9F /* NotificationController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 961EB7742089460D005F0E9F /* NotificationController.swift */; };
 		961EB7772089460D005F0E9F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 961EB7762089460D005F0E9F /* Assets.xcassets */; };
-		961EB77C2089460D005F0E9F /* watch.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = 961EB75F2089460D005F0E9F /* watch.app */; };
 		961EB786208946A1005F0E9F /* GlanceController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 961EB785208946A1005F0E9F /* GlanceController.swift */; };
 		961EB788208946B3005F0E9F /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 961EB787208946B3005F0E9F /* Images.xcassets */; };
 		961EB78E2089488B005F0E9F /* PushNotificationPayload.apns in Resources */ = {isa = PBXBuildFile; fileRef = 961EB78C2089488B005F0E9F /* PushNotificationPayload.apns */; };
@@ -39,13 +38,15 @@
 		9654C7FD2087C35F0021B684 /* fswidget.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 9654C7F22087C35F0021B684 /* fswidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		9654C8012087C8790021B684 /* Pods_widget.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9654C8022087C8790021B684 /* Pods_widget.framework */; };
 		9654C8042087C8DB0021B684 /* UIColor+colorFromHex.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1CB729D62029FD3500965219 /* UIColor+colorFromHex.swift */; };
+		965DE933221C50FA001307A5 /* ClockKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 965DE932221C50FA001307A5 /* ClockKit.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
+		96677213225245B900BCF6F6 /* HealthKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 96677212225245B900BCF6F6 /* HealthKit.framework */; };
+		96677214225245C000BCF6F6 /* HealthKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 96677212225245B900BCF6F6 /* HealthKit.framework */; };
+		96677215225245C500BCF6F6 /* HealthKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 96677212225245B900BCF6F6 /* HealthKit.framework */; };
 		96728E612096D27700ADFFDE /* ComplicationController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96728E602096D27700ADFFDE /* ComplicationController.swift */; };
 		96A54793212C8AFB00FDE960 /* CloudKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 96A54792212C8AFB00FDE960 /* CloudKit.framework */; };
 		96B9CB5520969B9300782124 /* FSInterfaceController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96B9CB5420969B9300782124 /* FSInterfaceController.swift */; };
-		96BFE40E21D7D5D700D6AA1B /* HealthKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 96BFE40D21D7D5D700D6AA1B /* HealthKit.framework */; };
-		96BFE40F21D7D5DE00D6AA1B /* HealthKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 96BFE40D21D7D5D700D6AA1B /* HealthKit.framework */; };
-		96BFE41021D7D5E300D6AA1B /* HealthKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 96BFE40D21D7D5D700D6AA1B /* HealthKit.framework */; };
 		96D5EE94208F7B3900308288 /* UIColor+colorFromHex.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1CB729D62029FD3500965219 /* UIColor+colorFromHex.swift */; };
+		96FD53392254374F00F546AB /* watch.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = 961EB75F2089460D005F0E9F /* watch.app */; };
 		A9F0B0D10FA7E63562B1D19D /* Pods_SpikeTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6D1C13DD723CC3C77D2D1D0E /* Pods_SpikeTests.framework */; };
 		DE6AF41AC6B6BE56B457596D /* Pods_SpikeUITests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F4F850F9FEC9EE7AB5D05EB4 /* Pods_SpikeUITests.framework */; };
 /* End PBXBuildFile section */
@@ -79,19 +80,19 @@
 			remoteGlobalIDString = 961EB76A2089460D005F0E9F;
 			remoteInfo = "watch Extension";
 		};
-		961EB77A2089460D005F0E9F /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 1C510116202806B400872D37 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 961EB75E2089460D005F0E9F;
-			remoteInfo = watch;
-		};
 		9654C7FB2087C35F0021B684 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 1C510116202806B400872D37 /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = 9654C7F12087C35F0021B684;
 			remoteInfo = fswidget;
+		};
+		96FD53372254374500F546AB /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1C510116202806B400872D37 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 961EB75E2089460D005F0E9F;
+			remoteInfo = watch;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -125,7 +126,7 @@
 			dstPath = "$(CONTENTS_FOLDER_PATH)/Watch";
 			dstSubfolderSpec = 16;
 			files = (
-				961EB77C2089460D005F0E9F /* watch.app in Embed Watch Content */,
+				96FD53392254374F00F546AB /* watch.app in Embed Watch Content */,
 			);
 			name = "Embed Watch Content";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -187,10 +188,11 @@
 		9654C7FA2087C35F0021B684 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		9654C8022087C8790021B684 /* Pods_widget.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = Pods_widget.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		9654C8052087CED70021B684 /* fswidget.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = fswidget.entitlements; sourceTree = "<group>"; };
+		965DE932221C50FA001307A5 /* ClockKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ClockKit.framework; path = Platforms/WatchOS.platform/Developer/SDKs/WatchOS5.1.sdk/System/Library/Frameworks/ClockKit.framework; sourceTree = DEVELOPER_DIR; };
+		96677212225245B900BCF6F6 /* HealthKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = HealthKit.framework; path = System/Library/Frameworks/HealthKit.framework; sourceTree = SDKROOT; };
 		96728E602096D27700ADFFDE /* ComplicationController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComplicationController.swift; sourceTree = "<group>"; };
 		96A54792212C8AFB00FDE960 /* CloudKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CloudKit.framework; path = System/Library/Frameworks/CloudKit.framework; sourceTree = SDKROOT; };
 		96B9CB5420969B9300782124 /* FSInterfaceController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FSInterfaceController.swift; sourceTree = "<group>"; };
-		96BFE40D21D7D5D700D6AA1B /* HealthKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = HealthKit.framework; path = System/Library/Frameworks/HealthKit.framework; sourceTree = SDKROOT; };
 		F4F850F9FEC9EE7AB5D05EB4 /* Pods_SpikeUITests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_SpikeUITests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		FD1A6AD0E53E5E7CB44C06AA /* Pods_Spike.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Spike.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -200,7 +202,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				96BFE41021D7D5E300D6AA1B /* HealthKit.framework in Frameworks */,
+				96677213225245B900BCF6F6 /* HealthKit.framework in Frameworks */,
 				96A54793212C8AFB00FDE960 /* CloudKit.framework in Frameworks */,
 				89E17E0D4380005A601C4E69 /* Pods_Spike.framework in Frameworks */,
 			);
@@ -226,7 +228,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				96BFE40F21D7D5DE00D6AA1B /* HealthKit.framework in Frameworks */,
+				96677214225245C000BCF6F6 /* HealthKit.framework in Frameworks */,
 				1C510156202806D600872D37 /* NotificationCenter.framework in Frameworks */,
 				677BE12171EF0760555A41F4 /* Pods_widget.framework in Frameworks */,
 			);
@@ -236,6 +238,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				965DE933221C50FA001307A5 /* ClockKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -243,7 +246,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				96BFE40E21D7D5D700D6AA1B /* HealthKit.framework in Frameworks */,
+				96677215225245C500BCF6F6 /* HealthKit.framework in Frameworks */,
 				9654C8012087C8790021B684 /* Pods_widget.framework in Frameworks */,
 				9654C7F32087C35F0021B684 /* NotificationCenter.framework in Frameworks */,
 			);
@@ -333,7 +336,8 @@
 		1C510154202806D600872D37 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				96BFE40D21D7D5D700D6AA1B /* HealthKit.framework */,
+				96677212225245B900BCF6F6 /* HealthKit.framework */,
+				965DE932221C50FA001307A5 /* ClockKit.framework */,
 				96A54792212C8AFB00FDE960 /* CloudKit.framework */,
 				9654C8022087C8790021B684 /* Pods_widget.framework */,
 				1C510155202806D600872D37 /* NotificationCenter.framework */,
@@ -426,9 +430,9 @@
 			buildRules = (
 			);
 			dependencies = (
+				96FD53382254374500F546AB /* PBXTargetDependency */,
 				1C51015F202806D600872D37 /* PBXTargetDependency */,
 				9654C7FC2087C35F0021B684 /* PBXTargetDependency */,
-				961EB77B2089460D005F0E9F /* PBXTargetDependency */,
 			);
 			name = Spike;
 			productName = Spike;
@@ -1053,15 +1057,15 @@
 			target = 961EB76A2089460D005F0E9F /* watch Extension */;
 			targetProxy = 961EB76D2089460D005F0E9F /* PBXContainerItemProxy */;
 		};
-		961EB77B2089460D005F0E9F /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 961EB75E2089460D005F0E9F /* watch */;
-			targetProxy = 961EB77A2089460D005F0E9F /* PBXContainerItemProxy */;
-		};
 		9654C7FC2087C35F0021B684 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 9654C7F12087C35F0021B684 /* fswidget */;
 			targetProxy = 9654C7FB2087C35F0021B684 /* PBXContainerItemProxy */;
+		};
+		96FD53382254374500F546AB /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 961EB75E2089460D005F0E9F /* watch */;
+			targetProxy = 96FD53372254374500F546AB /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -1228,14 +1232,14 @@
 				CODE_SIGN_ENTITLEMENTS = Spike/Spike.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = M295NYD8ZT;
+				DEVELOPMENT_TEAM = 4J6GHFAM55;
 				INFOPLIST_FILE = Spike/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 8.1;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = org.nightscoutfoundation.spike;
+				PRODUCT_BUNDLE_IDENTIFIER = com.miguelkennedy.spike;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_VERSION = 4.0;
@@ -1252,14 +1256,14 @@
 				CODE_SIGN_ENTITLEMENTS = Spike/Spike.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = M295NYD8ZT;
+				DEVELOPMENT_TEAM = 4J6GHFAM55;
 				INFOPLIST_FILE = Spike/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 8.1;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = org.nightscoutfoundation.spike;
+				PRODUCT_BUNDLE_IDENTIFIER = com.miguelkennedy.spike;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_VERSION = 4.0;
@@ -1360,7 +1364,7 @@
 				CODE_SIGN_ENTITLEMENTS = widget/widget.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = M295NYD8ZT;
+				DEVELOPMENT_TEAM = 4J6GHFAM55;
 				INFOPLIST_FILE = widget/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 8.1;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -1368,7 +1372,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = org.nightscoutfoundation.spike.todaywidget;
+				PRODUCT_BUNDLE_IDENTIFIER = com.miguelkennedy.spike.todaywidget;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SKIP_INSTALL = YES;
@@ -1385,7 +1389,7 @@
 				CODE_SIGN_ENTITLEMENTS = widget/widget.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = M295NYD8ZT;
+				DEVELOPMENT_TEAM = 4J6GHFAM55;
 				INFOPLIST_FILE = widget/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 8.1;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -1393,7 +1397,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = org.nightscoutfoundation.spike.todaywidget;
+				PRODUCT_BUNDLE_IDENTIFIER = com.miguelkennedy.spike.todaywidget;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SKIP_INSTALL = YES;
@@ -1411,10 +1415,10 @@
 				CODE_SIGN_ENTITLEMENTS = watch/watch.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = M295NYD8ZT;
+				DEVELOPMENT_TEAM = 4J6GHFAM55;
 				IBSC_MODULE = watch_Extension;
 				INFOPLIST_FILE = watch/Info.plist;
-				PRODUCT_BUNDLE_IDENTIFIER = org.nightscoutfoundation.spike.watchkitapp;
+				PRODUCT_BUNDLE_IDENTIFIER = com.miguelkennedy.spike.watchkitapp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SDKROOT = watchos;
@@ -1433,10 +1437,10 @@
 				CODE_SIGN_ENTITLEMENTS = watch/watch.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = M295NYD8ZT;
+				DEVELOPMENT_TEAM = 4J6GHFAM55;
 				IBSC_MODULE = watch_Extension;
 				INFOPLIST_FILE = watch/Info.plist;
-				PRODUCT_BUNDLE_IDENTIFIER = org.nightscoutfoundation.spike.watchkitapp;
+				PRODUCT_BUNDLE_IDENTIFIER = com.miguelkennedy.spike.watchkitapp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SDKROOT = watchos;
@@ -1454,14 +1458,14 @@
 				CODE_SIGN_ENTITLEMENTS = "watch Extension/watch Extension.entitlements";
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = M295NYD8ZT;
+				DEVELOPMENT_TEAM = 4J6GHFAM55;
 				INFOPLIST_FILE = "watch Extension/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = org.nightscoutfoundation.spike.watchkitapp.watchkitextension;
+				PRODUCT_BUNDLE_IDENTIFIER = com.miguelkennedy.spike.watchkitapp.watchkitextension;
 				PRODUCT_NAME = "${TARGET_NAME}";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SDKROOT = watchos;
@@ -1479,14 +1483,14 @@
 				CODE_SIGN_ENTITLEMENTS = "watch Extension/watch Extension.entitlements";
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = M295NYD8ZT;
+				DEVELOPMENT_TEAM = 4J6GHFAM55;
 				INFOPLIST_FILE = "watch Extension/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = org.nightscoutfoundation.spike.watchkitapp.watchkitextension;
+				PRODUCT_BUNDLE_IDENTIFIER = com.miguelkennedy.spike.watchkitapp.watchkitextension;
 				PRODUCT_NAME = "${TARGET_NAME}";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SDKROOT = watchos;
@@ -1503,7 +1507,7 @@
 				CODE_SIGN_ENTITLEMENTS = fswidget/fswidget.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = M295NYD8ZT;
+				DEVELOPMENT_TEAM = 4J6GHFAM55;
 				INFOPLIST_FILE = fswidget/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 8.1;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -1511,7 +1515,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = org.nightscoutfoundation.spike.fswidget;
+				PRODUCT_BUNDLE_IDENTIFIER = com.miguelkennedy.spike.fswidget;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SKIP_INSTALL = YES;
@@ -1527,7 +1531,7 @@
 				CODE_SIGN_ENTITLEMENTS = fswidget/fswidget.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = M295NYD8ZT;
+				DEVELOPMENT_TEAM = 4J6GHFAM55;
 				INFOPLIST_FILE = fswidget/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 8.1;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -1535,7 +1539,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = org.nightscoutfoundation.spike.fswidget;
+				PRODUCT_BUNDLE_IDENTIFIER = com.miguelkennedy.spike.fswidget;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SKIP_INSTALL = YES;

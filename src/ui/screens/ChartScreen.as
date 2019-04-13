@@ -27,6 +27,7 @@ package ui.screens
 	import model.ModelLocator;
 	
 	import services.CalibrationService;
+	import services.DexcomShareService;
 	import services.NightscoutService;
 	import services.TransmitterService;
 	
@@ -34,6 +35,8 @@ package ui.screens
 	import starling.events.Event;
 	import starling.events.ResizeEvent;
 	import starling.utils.SystemUtil;
+	
+	import stats.BasicUserStats;
 	
 	import treatments.Treatment;
 	import treatments.TreatmentsManager;
@@ -48,6 +51,7 @@ package ui.screens
 	
 	import utils.Constants;
 	import utils.DeviceInfo;
+	import utils.TimeSpan;
 	import utils.Trace;
 	
 	[ResourceBundle("chartscreen")]
@@ -81,10 +85,7 @@ package ui.screens
 		private var chartRequiresReload:Boolean = true;
 		private var appInBackground:Boolean = false;
 		private var queueTimeout:int = -1;
-		private var treatmentsEnabled:Boolean = false;
-		private var chartTreatmentsEnabled:Boolean = false;
-		private var displayIOBEnabled:Boolean = false;
-		private var displayCOBEnabled:Boolean = false;
+		private var pieChartTreatmentUpdaterTimeout:int = -1;
 		
 		//Display Objects
 		private var glucoseChart:GlucoseChart;
@@ -113,10 +114,6 @@ package ui.screens
 			selectedTimelineRange = Number(CommonSettings.getCommonSetting(CommonSettings.COMMON_SETTING_CHART_SELECTED_TIMELINE_RANGE));
 			drawLineChart = CommonSettings.getCommonSetting(CommonSettings.COMMON_SETTING_CHART_DISPLAY_LINE) == "true";
 			displayPieChart = CommonSettings.getCommonSetting(CommonSettings.COMMON_SETTING_CHART_DISPLAY_GLUCOSE_DISTRIBUTION) == "true";
-			treatmentsEnabled = CommonSettings.getCommonSetting(CommonSettings.COMMON_SETTING_TREATMENTS_ENABLED) == "true";
-			chartTreatmentsEnabled = CommonSettings.getCommonSetting(CommonSettings.COMMON_SETTING_TREATMENTS_ON_CHART_ENABLED) == "true";
-			displayIOBEnabled = CommonSettings.getCommonSetting(CommonSettings.COMMON_SETTING_TREATMENTS_IOB_ENABLED) == "true";
-			displayCOBEnabled = CommonSettings.getCommonSetting(CommonSettings.COMMON_SETTING_TREATMENTS_COB_ENABLED) == "true";
 			displayRawComponent = CGMBlueToothDevice.isDexcomG4() || CGMBlueToothDevice.isDexcomG5() || CGMBlueToothDevice.isDexcomG6();
 			displayRawData = CommonSettings.getCommonSetting(CommonSettings.COMMON_SETTING_CHART_DISPLAY_RAW_ON) == "true";
 			
@@ -126,11 +123,14 @@ package ui.screens
 			Spike.instance.addEventListener(SpikeEvent.APP_IN_FOREGROUND, onAppInForeground);
 			TransmitterService.instance.addEventListener(TransmitterServiceEvent.LAST_BGREADING_RECEIVED, onBgReadingReceived);
 			NightscoutService.instance.addEventListener(FollowerEvent.BG_READING_RECEIVED, onBgReadingReceivedFollower);
+			DexcomShareService.instance.addEventListener(FollowerEvent.BG_READING_RECEIVED, onBgReadingReceivedFollower);
 			CalibrationService.instance.addEventListener(CalibrationServiceEvent.INITIAL_CALIBRATION_EVENT, onInitialCalibrationReceived);
 			TreatmentsManager.instance.addEventListener(TreatmentsEvent.TREATMENT_ADDED, onTreatmentAdded);
 			TreatmentsManager.instance.addEventListener(TreatmentsEvent.TREATMENT_EXTERNALLY_MODIFIED, onTreatmentExternallyModified);
 			TreatmentsManager.instance.addEventListener(TreatmentsEvent.TREATMENT_EXTERNALLY_DELETED, onTreatmentExternallyDeleted);
+			TreatmentsManager.instance.addEventListener(TreatmentsEvent.TREATMENT_DELETED, onTreatmentDeleted);
 			TreatmentsManager.instance.addEventListener(TreatmentsEvent.IOB_COB_UPDATED, onUpdateIOBCOB);
+			TreatmentsManager.instance.addEventListener(TreatmentsEvent.NEW_BASAL_DATA, onNewBasalData);
 			Starling.current.stage.addEventListener(starling.events.Event.RESIZE, onStarlingResize);
 			
 			//Scroll Policies
@@ -380,8 +380,13 @@ package ui.screens
 							
 							if (displayPieChart && pieChart != null)
 							{
-								if (pieChart.drawChart())
+								if (pieChart.updateStats(pieChart.getPageName()))
 									queueAddedToPie = true;
+								
+								if (pieChart.dummyModeActive || (pieChart.currentPageName != BasicUserStats.PAGE_BG_DISTRIBUTION && new Date().valueOf() - pieChart.lastGlucoseDistributionFetch >= TimeSpan.TIME_1_HOUR))
+								{
+									pieChart.updateStats(BasicUserStats.PAGE_BG_DISTRIBUTION);
+								}
 							}
 							else
 								queueAddedToPie = true;
@@ -402,8 +407,13 @@ package ui.screens
 							
 							if (displayPieChart && pieChart != null)
 							{
-								if (pieChart.drawChart())
+								if (pieChart.updateStats(pieChart.getPageName()))
 									queueAddedToPie = true;
+								
+								if (pieChart.dummyModeActive || (pieChart.currentPageName != BasicUserStats.PAGE_BG_DISTRIBUTION && new Date().valueOf() - pieChart.lastGlucoseDistributionFetch >= TimeSpan.TIME_1_HOUR))
+								{
+									pieChart.updateStats(BasicUserStats.PAGE_BG_DISTRIBUTION);
+								}
 							}
 							else
 								queueAddedToPie = true;
@@ -554,8 +564,19 @@ package ui.screens
 					if (glucoseChart != null && SystemUtil.isApplicationActive)
 					{
 						glucoseChart.addGlucose(readings);
-						if (displayPieChart)
-							pieChart.drawChart();
+						
+						if (displayPieChart && pieChart != null)
+						{
+							if (pieChart.currentPageName == BasicUserStats.PAGE_BG_DISTRIBUTION || pieChart.currentPageName == BasicUserStats.PAGE_VARIABILITY)
+							{
+								pieChart.updateStats(pieChart.getPageName());
+							}
+							
+							if (pieChart.dummyModeActive || (pieChart.currentPageName != BasicUserStats.PAGE_BG_DISTRIBUTION && new Date().valueOf() - pieChart.lastGlucoseDistributionFetch >= TimeSpan.TIME_1_HOUR))
+							{
+								pieChart.updateStats(BasicUserStats.PAGE_BG_DISTRIBUTION);
+							}
+						}
 					}
 					else
 					{
@@ -632,7 +653,17 @@ package ui.screens
 					
 					//Redraw Pie Chart
 					if (displayPieChart && pieChart != null)
-						pieChart.drawChart();
+					{
+						if (pieChart.currentPageName == BasicUserStats.PAGE_BG_DISTRIBUTION || pieChart.currentPageName == BasicUserStats.PAGE_VARIABILITY)
+						{
+							pieChart.updateStats(pieChart.getPageName());
+						}
+						
+						if (pieChart.dummyModeActive || (pieChart.currentPageName != BasicUserStats.PAGE_BG_DISTRIBUTION && new Date().valueOf() - pieChart.lastGlucoseDistributionFetch >= TimeSpan.TIME_1_HOUR))
+						{
+							pieChart.updateStats(BasicUserStats.PAGE_BG_DISTRIBUTION);
+						}
+					}
 				}
 			} 
 			catch(error:Error) 
@@ -658,6 +689,27 @@ package ui.screens
 			SystemUtil.executeWhenApplicationIsActive(glucoseChart.calculateTotalCOB, now);
 		}
 		
+		private function onNewBasalData(e:TreatmentsEvent):void
+		{
+			if (glucoseChart == null || !SystemUtil.isApplicationActive)
+				return;
+			
+			Trace.myTrace("ChartScreen.as", "Updating Basals");
+			
+			glucoseChart.renderBasals();
+			
+			if (pieChart != null && pieChart.currentPageName == BasicUserStats.PAGE_TREATMENTS)
+			{
+				clearTimeout(pieChartTreatmentUpdaterTimeout);
+				
+				pieChartTreatmentUpdaterTimeout = setTimeout( function():void 
+				{
+					if (pieChart == null) return;
+					SystemUtil.executeWhenApplicationIsActive(pieChart.updateStats, BasicUserStats.PAGE_TREATMENTS);
+				}, 1000 );
+			}
+		}
+		
 		private function onTreatmentAdded(e:TreatmentsEvent):void
 		{
 			var treatment:Treatment = e.treatment;
@@ -665,6 +717,17 @@ package ui.screens
 			{
 				Trace.myTrace("ChartScreen.as", "Adding treatment to the chart: Type: " + treatment.type);
 				SystemUtil.executeWhenApplicationIsActive(glucoseChart.addTreatment, treatment);
+				
+				if (SystemUtil.isApplicationActive && pieChart != null && pieChart.currentPageName == BasicUserStats.PAGE_TREATMENTS && (treatment.insulinAmount > 0 || treatment.carbs > 0 || treatment.type == Treatment.TYPE_EXERCISE))
+				{
+					clearTimeout(pieChartTreatmentUpdaterTimeout);
+					
+					pieChartTreatmentUpdaterTimeout = setTimeout( function():void 
+					{
+						if (pieChart == null) return;
+						SystemUtil.executeWhenApplicationIsActive(pieChart.updateStats, BasicUserStats.PAGE_TREATMENTS);
+					}, 1000 );
+				}
 			}
 		}
 		
@@ -675,6 +738,17 @@ package ui.screens
 			{
 				Trace.myTrace("ChartScreen.as", "Sending externally modified treatment to the chart: Type: " + treatment.type);
 				SystemUtil.executeWhenApplicationIsActive(glucoseChart.updateExternallyModifiedTreatment, treatment);
+				
+				if (SystemUtil.isApplicationActive && pieChart != null && pieChart.currentPageName == BasicUserStats.PAGE_TREATMENTS && (treatment.insulinAmount > 0 || treatment.carbs > 0 || treatment.type == Treatment.TYPE_EXERCISE))
+				{
+					clearTimeout(pieChartTreatmentUpdaterTimeout);
+					
+					pieChartTreatmentUpdaterTimeout = setTimeout( function():void 
+					{
+						if (pieChart == null) return;
+						SystemUtil.executeWhenApplicationIsActive(pieChart.updateStats, BasicUserStats.PAGE_TREATMENTS);
+					}, 1000 );
+				}
 			}
 		}
 		
@@ -685,6 +759,35 @@ package ui.screens
 			{
 				Trace.myTrace("ChartScreen.as", "Sending externally deleted treatment to the chart: Type: " + treatment.type);
 				SystemUtil.executeWhenApplicationIsActive(glucoseChart.updateExternallyDeletedTreatment, treatment);
+				
+				if (SystemUtil.isApplicationActive && pieChart != null && pieChart.currentPageName == BasicUserStats.PAGE_TREATMENTS && (treatment.insulinAmount > 0 || treatment.carbs > 0 || treatment.type == Treatment.TYPE_EXERCISE))
+				{
+					clearTimeout(pieChartTreatmentUpdaterTimeout);
+					
+					pieChartTreatmentUpdaterTimeout = setTimeout( function():void 
+					{
+						if (pieChart == null) return;
+						SystemUtil.executeWhenApplicationIsActive(pieChart.updateStats, BasicUserStats.PAGE_TREATMENTS);
+					}, 1000 );
+				}
+			}
+		}
+		
+		private function onTreatmentDeleted(e:TreatmentsEvent):void
+		{
+			var treatment:Treatment = e.treatment;
+			if (treatment != null && glucoseChart != null)
+			{
+				if (SystemUtil.isApplicationActive && pieChart != null && pieChart.currentPageName == BasicUserStats.PAGE_TREATMENTS && (treatment.insulinAmount > 0 || treatment.carbs > 0 || treatment.type == Treatment.TYPE_EXERCISE))
+				{
+					clearTimeout(pieChartTreatmentUpdaterTimeout);
+					
+					pieChartTreatmentUpdaterTimeout = setTimeout( function():void 
+					{
+						if (pieChart == null) return;
+						SystemUtil.executeWhenApplicationIsActive(pieChart.updateStats, BasicUserStats.PAGE_TREATMENTS);
+					}, 1000 );
+				}
 			}
 		}
 		
@@ -874,6 +977,8 @@ package ui.screens
 		{
 			/* Timers */
 			clearTimeout(redrawChartTimeoutID);
+			clearTimeout(pieChartTreatmentUpdaterTimeout);
+			clearTimeout(queueTimeout);
 
 			/* Event Listeners */
 			Spike.instance.removeEventListener(SpikeEvent.APP_IN_BACKGROUND, onAppInBackground);
@@ -881,11 +986,14 @@ package ui.screens
 			TransmitterService.instance.removeEventListener(TransmitterServiceEvent.LAST_BGREADING_RECEIVED, onBgReadingReceived);
 			CalibrationService.instance.removeEventListener(CalibrationServiceEvent.INITIAL_CALIBRATION_EVENT, onInitialCalibrationReceived);
 			NightscoutService.instance.removeEventListener(FollowerEvent.BG_READING_RECEIVED, onBgReadingReceivedFollower);
+			DexcomShareService.instance.removeEventListener(FollowerEvent.BG_READING_RECEIVED, onBgReadingReceivedFollower);
 			removeEventListener(FeathersEventType.CREATION_COMPLETE, onCreation);
 			TreatmentsManager.instance.removeEventListener(TreatmentsEvent.TREATMENT_ADDED, onTreatmentAdded);
 			TreatmentsManager.instance.removeEventListener(TreatmentsEvent.TREATMENT_EXTERNALLY_MODIFIED, onTreatmentExternallyModified);
 			TreatmentsManager.instance.removeEventListener(TreatmentsEvent.TREATMENT_EXTERNALLY_DELETED, onTreatmentExternallyDeleted);
+			TreatmentsManager.instance.addEventListener(TreatmentsEvent.TREATMENT_DELETED, onTreatmentDeleted);
 			TreatmentsManager.instance.removeEventListener(TreatmentsEvent.IOB_COB_UPDATED, onUpdateIOBCOB);
+			TreatmentsManager.instance.removeEventListener(TreatmentsEvent.NEW_BASAL_DATA, onNewBasalData);
 			Starling.current.stage.removeEventListener(starling.events.Event.RESIZE, onStarlingResize);
 			
 			/* Display Objects */

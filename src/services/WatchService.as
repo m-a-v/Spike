@@ -2,6 +2,7 @@ package services
 {
 	import com.distriqt.extension.calendar.AuthorisationStatus;
 	import com.distriqt.extension.calendar.Calendar;
+	import com.distriqt.extension.calendar.events.AuthorisationEvent;
 	import com.distriqt.extension.calendar.objects.EventObject;
 	
 	import flash.events.Event;
@@ -23,9 +24,11 @@ package services
 	import model.Forecast;
 	import model.ModelLocator;
 	
+	import treatments.Treatment;
 	import treatments.TreatmentsManager;
 	
 	import ui.chart.helpers.GlucoseFactory;
+	import ui.popups.AlertManager;
 	
 	import utils.BgGraphBuilder;
 	import utils.GlucoseHelper;
@@ -34,6 +37,8 @@ package services
 	import utils.UniqueId;
 	
 	[ResourceBundle("treatments")]
+	[ResourceBundle("watchsettingsscreen")]
+	[ResourceBundle("globaltranslations")]
 	
 	public class WatchService
 	{
@@ -72,12 +77,39 @@ package services
 					LocalSettings.instance.addEventListener(SettingsServiceEvent.SETTING_CHANGED, onSettingsChanged);
 					
 					if (Calendar.service.authorisationStatus() == AuthorisationStatus.AUTHORISED && watchComplicationEnabled && calendarID != "")
+					{
 						activateService();
+					}
+					else if (Calendar.service.authorisationStatus() != AuthorisationStatus.AUTHORISED && watchComplicationEnabled && calendarID != "")
+					{
+						Calendar.service.addEventListener( AuthorisationEvent.CHANGED, onCalendarAuthorisation );
+						Calendar.service.requestAccess();
+					}
 				}
 			}
 			catch (e:Error)
 			{
 				Trace.myTrace("WatchService.as", "Error initiating Calendar ANE: " + e);
+			}
+		}
+		
+		private static function onCalendarAuthorisation(event:AuthorisationEvent):void
+		{
+			Calendar.service.removeEventListener( AuthorisationEvent.CHANGED, onCalendarAuthorisation );
+			
+			if (Calendar.service.authorisationStatus() == AuthorisationStatus.AUTHORISED)
+			{
+				activateService();
+			}
+			else
+			{
+				Trace.myTrace("WatchService.as", "Error authorizing calendar access. Notifying user...");
+				
+				AlertManager.showSimpleAlert
+				(
+					ModelLocator.resourceManagerInstance.getString('globaltranslations','warning_alert_title'),
+					ModelLocator.resourceManagerInstance.getString('watchsettingsscreen','alert_message_manual_athorization_2')
+				)
 			}
 		}
 		
@@ -106,6 +138,7 @@ package services
 			serviceActive = true;
 			TransmitterService.instance.addEventListener(TransmitterServiceEvent.LAST_BGREADING_RECEIVED, onBloodGlucoseReceived, false, 160, false);
 			NightscoutService.instance.addEventListener(FollowerEvent.BG_READING_RECEIVED, onBloodGlucoseReceived, false, 160, false);
+			DexcomShareService.instance.addEventListener(FollowerEvent.BG_READING_RECEIVED, onBloodGlucoseReceived, false, 160, false);
 			TreatmentsManager.instance.addEventListener(TreatmentsEvent.TREATMENT_ADDED, onTreatmentsChanged);
 			TreatmentsManager.instance.addEventListener(TreatmentsEvent.TREATMENT_DELETED, onTreatmentsChanged);
 			TreatmentsManager.instance.addEventListener(TreatmentsEvent.TREATMENT_UPDATED, onTreatmentsChanged);
@@ -121,6 +154,7 @@ package services
 			serviceActive = false;
 			TransmitterService.instance.removeEventListener(TransmitterServiceEvent.LAST_BGREADING_RECEIVED, onBloodGlucoseReceived);
 			NightscoutService.instance.removeEventListener(FollowerEvent.BG_READING_RECEIVED, onBloodGlucoseReceived);
+			DexcomShareService.instance.removeEventListener(FollowerEvent.BG_READING_RECEIVED, onBloodGlucoseReceived);
 			TreatmentsManager.instance.removeEventListener(TreatmentsEvent.TREATMENT_ADDED, onTreatmentsChanged);
 			TreatmentsManager.instance.removeEventListener(TreatmentsEvent.TREATMENT_DELETED, onTreatmentsChanged);
 			TreatmentsManager.instance.removeEventListener(TreatmentsEvent.TREATMENT_UPDATED, onTreatmentsChanged);
@@ -255,8 +289,11 @@ package services
 			processLatestGlucose();
 		}
 		
-		private static function onTreatmentsChanged(e:Event):void
+		private static function onTreatmentsChanged(e:TreatmentsEvent):void
 		{
+			if (e.treatment != null && e.treatment.type == Treatment.TYPE_EXTENDED_COMBO_BOLUS_CHILD)
+				return;
+			
 			if (displayCOBEnabled || displayIOBEnabled)
 				processLatestGlucose();
 		}

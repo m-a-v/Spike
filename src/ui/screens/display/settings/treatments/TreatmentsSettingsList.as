@@ -29,7 +29,6 @@ package ui.screens.display.settings.treatments
 	
 	import ui.AppInterface;
 	import ui.chart.visualcomponents.ColorPicker;
-	import ui.popups.WorkflowConfigSender;
 	import ui.screens.Screens;
 	import ui.screens.display.LayoutFactory;
 	import ui.screens.display.SpikeList;
@@ -47,7 +46,7 @@ package ui.screens.display.settings.treatments
 		private var profileIconImage:Image;
 		private var treatmentsEnabled:ToggleSwitch;
 		private var nightscoutSyncEnabled:Check;
-		private var chartDisplayEnabled:Check;
+		private var chartDisplayTreatmentsEnabled:Check;
 		private var displayIOBEnabled:Check;
 		private var displayCOBEnabled:Check;
 		private var insulinColorPicker:ColorPicker;
@@ -58,17 +57,20 @@ package ui.screens.display.settings.treatments
 		private var newSensorColorPicker:ColorPicker;
 		private var _parent:PanelScreen;
 		private var resetColors:Button;
-		private var emailConfigurationFiles:Button;
 		private var loadInstructions:Button;
 		private var pumpUserEnabled:Check;
 		private var bolusWizardIconImage:Image;
 		private var foodManagerIconImage:Image;
+		private var chartDisplayBasalsEnabled:Check;
+		private var downloadNSBasalsEnabled:Check;
 		
 		/* Internal Variables */
 		public var needsSave:Boolean = false;
 		private var treatmentsEnabledValue:Boolean;
 		private var nightscoutSyncEnabledValue:Boolean;
-		private var chartDisplayEnabledValue:Boolean;
+		private var downloadNSBasalsEnabledValue:Boolean;
+		private var chartDisplayTreatmentsEnabledValue:Boolean;
+		private var chartDisplayBasalsEnabledValue:Boolean;
 		private var displayIOBEnabledValue:Boolean;
 		private var displayCOBEnabledValue:Boolean;
 		private var insulinMarkerColorValue:uint;
@@ -79,7 +81,7 @@ package ui.screens.display.settings.treatments
 		private var newSensorMarkerColorValue:uint;
 		private var pumpUserEnabledValue:Boolean;
 		private var colorPickers:Array = [];
-		
+
 		public function TreatmentsSettingsList(parentDisplayObject:PanelScreen)
 		{
 			this._parent = parentDisplayObject;
@@ -111,7 +113,8 @@ package ui.screens.display.settings.treatments
 		private function setupInitialContent():void
 		{
 			treatmentsEnabledValue = CommonSettings.getCommonSetting(CommonSettings.COMMON_SETTING_TREATMENTS_ENABLED) == "true";
-			chartDisplayEnabledValue = CommonSettings.getCommonSetting(CommonSettings.COMMON_SETTING_TREATMENTS_ON_CHART_ENABLED) == "true";
+			chartDisplayTreatmentsEnabledValue = CommonSettings.getCommonSetting(CommonSettings.COMMON_SETTING_TREATMENTS_ON_CHART_ENABLED) == "true";
+			chartDisplayBasalsEnabledValue = CommonSettings.getCommonSetting(CommonSettings.COMMON_SETTING_SHOW_BASALS_ON_CHART) == "true";
 			nightscoutSyncEnabledValue = CommonSettings.getCommonSetting(CommonSettings.COMMON_SETTING_TREATMENTS_NIGHTSCOUT_DOWNLOAD_ENABLED) == "true";
 			displayIOBEnabledValue = CommonSettings.getCommonSetting(CommonSettings.COMMON_SETTING_TREATMENTS_IOB_ENABLED) == "true";
 			displayCOBEnabledValue = CommonSettings.getCommonSetting(CommonSettings.COMMON_SETTING_TREATMENTS_COB_ENABLED) == "true";
@@ -122,6 +125,7 @@ package ui.screens.display.settings.treatments
 			treatmentPillColorValue = uint(CommonSettings.getCommonSetting(CommonSettings.COMMON_SETTING_TREATMENTS_PILL_COLOR));
 			newSensorMarkerColorValue = uint(CommonSettings.getCommonSetting(CommonSettings.COMMON_SETTING_TREATMENTS_NEW_SENSOR_MARKER_COLOR));
 			pumpUserEnabledValue = CommonSettings.getCommonSetting(CommonSettings.COMMON_SETTING_TREATMENTS_LOOP_OPENAPS_USER_ENABLED) == "true";
+			downloadNSBasalsEnabledValue = CommonSettings.getCommonSetting(CommonSettings.COMMON_SETTING_DOWNLOAD_NIGHTSCOUT_BASALS) == "true";
 		}
 		
 		private function setupContent():void
@@ -136,9 +140,13 @@ package ui.screens.display.settings.treatments
 			treatmentsEnabled = LayoutFactory.createToggleSwitch(treatmentsEnabledValue);
 			treatmentsEnabled.addEventListener(Event.CHANGE, onSettingsChanged);
 			
-			/* Enable/Disable Display on Chart */
-			chartDisplayEnabled = LayoutFactory.createCheckMark(chartDisplayEnabledValue);
-			chartDisplayEnabled.addEventListener(Event.CHANGE, onSettingsChanged);
+			/* Enable/Disable Display Treatments on Chart */
+			chartDisplayTreatmentsEnabled = LayoutFactory.createCheckMark(chartDisplayTreatmentsEnabledValue);
+			chartDisplayTreatmentsEnabled.addEventListener(Event.CHANGE, onSettingsChanged);
+			
+			/* Enable/Disable Display Basals on Chart */
+			chartDisplayBasalsEnabled = LayoutFactory.createCheckMark(chartDisplayBasalsEnabledValue);
+			chartDisplayBasalsEnabled.addEventListener(Event.CHANGE, onSettingsChanged);
 			
 			/* Enable/Disable IOB */
 			displayIOBEnabled = LayoutFactory.createCheckMark(displayIOBEnabledValue);
@@ -148,9 +156,13 @@ package ui.screens.display.settings.treatments
 			displayCOBEnabled = LayoutFactory.createCheckMark(displayCOBEnabledValue);
 			displayCOBEnabled.addEventListener(Event.CHANGE, onSettingsChanged);
 			
-			/* Enable/Disable Nightscout Sync */
+			/* Enable/Disable Nightscout Treatments Downloads */
 			nightscoutSyncEnabled = LayoutFactory.createCheckMark(nightscoutSyncEnabledValue);
 			nightscoutSyncEnabled.addEventListener(Event.CHANGE, onSettingsChanged);
+			
+			/* Enable/Disable Nightscout Basals Downloads */
+			downloadNSBasalsEnabled = LayoutFactory.createCheckMark(downloadNSBasalsEnabledValue);
+			downloadNSBasalsEnabled.addEventListener(Event.CHANGE, onSettingsChanged);
 			
 			/* Enable/Disable Pump User */
 			pumpUserEnabled = LayoutFactory.createCheckMark(pumpUserEnabledValue);
@@ -211,11 +223,6 @@ package ui.screens.display.settings.treatments
 			loadInstructions.pivotX = -3;
 			loadInstructions.addEventListener(Event.TRIGGERED, onLoadInstructions);
 			
-			//Email configuration files
-			emailConfigurationFiles = LayoutFactory.createButton(ModelLocator.resourceManagerInstance.getString('globaltranslations',"email_configurations_label"));
-			emailConfigurationFiles.pivotX = -3;
-			emailConfigurationFiles.addEventListener(Event.TRIGGERED, onSendConfigurationFiles);
-			
 			layoutData = new AnchorLayoutData( 0, 0, 0, 0 );
 			addEventListener( Event.CHANGE, onMenuChanged );
 			
@@ -236,12 +243,14 @@ package ui.screens.display.settings.treatments
 			data.push({ label: ModelLocator.resourceManagerInstance.getString('globaltranslations',"enabled"), accessory: treatmentsEnabled, selectable: false });
 			if (treatmentsEnabledValue)
 			{
-				data.push({ label: ModelLocator.resourceManagerInstance.getString('treatments',"display_on_chart_label"), accessory: chartDisplayEnabled, selectable: false });
-				if (chartDisplayEnabledValue)
+				data.push({ label: ModelLocator.resourceManagerInstance.getString('treatments',"display_treatments_on_chart_label"), accessory: chartDisplayTreatmentsEnabled, selectable: false });
+				data.push({ label: ModelLocator.resourceManagerInstance.getString('treatments',"display_basals_on_chart_label"), accessory: chartDisplayBasalsEnabled, selectable: false });
+				if (chartDisplayTreatmentsEnabledValue)
 				{
 					data.push({ label: ModelLocator.resourceManagerInstance.getString('treatments',"display_iob_label"), accessory: displayIOBEnabled, selectable: false });
 					data.push({ label: ModelLocator.resourceManagerInstance.getString('treatments',"display_cob_label"), accessory: displayCOBEnabled, selectable: false });
 					data.push({ label: ModelLocator.resourceManagerInstance.getString('treatments',"download_ns_treatments_label"), accessory: nightscoutSyncEnabled, selectable: false });
+					data.push({ label: ModelLocator.resourceManagerInstance.getString('treatments',"download_ns_basals_label"), accessory: downloadNSBasalsEnabled, selectable: false });
 					if (nightscoutSyncEnabledValue)
 						data.push({ label: ModelLocator.resourceManagerInstance.getString('treatments',"loop_openaps_user_label"), accessory: pumpUserEnabled, selectable: false });
 					data.push({ label: ModelLocator.resourceManagerInstance.getString('treatments',"insulin_marker_color_label"), accessory: insulinColorPicker, selectable: false });
@@ -253,9 +262,6 @@ package ui.screens.display.settings.treatments
 					data.push({ label: "", accessory: resetColors, selectable: false });
 					data.push({ label: "", accessory: loadInstructions, selectable: false });
 				}
-
-				if (!CGMBlueToothDevice.isFollower() || (CGMBlueToothDevice.isFollower() && CommonSettings.getCommonSetting(CommonSettings.COMMON_SETTING_DATA_COLLECTION_NS_URL) != "" && CommonSettings.getCommonSetting(CommonSettings.COMMON_SETTING_DATA_COLLECTION_NS_API_SECRET) != "" && CommonSettings.getCommonSetting(CommonSettings.COMMON_SETTING_FOLLOWER_MODE) == "Nightscout"))
-					data.push({ label: "", accessory: emailConfigurationFiles, selectable: false });
 			}
 			
 			dataProvider = new ListCollection(data);
@@ -266,8 +272,8 @@ package ui.screens.display.settings.treatments
 			if (CommonSettings.getCommonSetting(CommonSettings.COMMON_SETTING_TREATMENTS_ENABLED) != String(treatmentsEnabledValue))
 				CommonSettings.setCommonSetting(CommonSettings.COMMON_SETTING_TREATMENTS_ENABLED, String(treatmentsEnabledValue));
 			
-			if (CommonSettings.getCommonSetting(CommonSettings.COMMON_SETTING_TREATMENTS_ON_CHART_ENABLED) != String(chartDisplayEnabledValue))
-				CommonSettings.setCommonSetting(CommonSettings.COMMON_SETTING_TREATMENTS_ON_CHART_ENABLED, String(chartDisplayEnabledValue));
+			if (CommonSettings.getCommonSetting(CommonSettings.COMMON_SETTING_TREATMENTS_ON_CHART_ENABLED) != String(chartDisplayTreatmentsEnabledValue))
+				CommonSettings.setCommonSetting(CommonSettings.COMMON_SETTING_TREATMENTS_ON_CHART_ENABLED, String(chartDisplayTreatmentsEnabledValue));
 			
 			if (CommonSettings.getCommonSetting(CommonSettings.COMMON_SETTING_TREATMENTS_NIGHTSCOUT_DOWNLOAD_ENABLED) != String(nightscoutSyncEnabledValue))
 				CommonSettings.setCommonSetting(CommonSettings.COMMON_SETTING_TREATMENTS_NIGHTSCOUT_DOWNLOAD_ENABLED, String(nightscoutSyncEnabledValue));
@@ -298,6 +304,12 @@ package ui.screens.display.settings.treatments
 			
 			if (CommonSettings.getCommonSetting(CommonSettings.COMMON_SETTING_TREATMENTS_LOOP_OPENAPS_USER_ENABLED) != String(pumpUserEnabledValue))
 				CommonSettings.setCommonSetting(CommonSettings.COMMON_SETTING_TREATMENTS_LOOP_OPENAPS_USER_ENABLED, String(pumpUserEnabledValue));
+			
+			if (CommonSettings.getCommonSetting(CommonSettings.COMMON_SETTING_SHOW_BASALS_ON_CHART) != String(chartDisplayBasalsEnabledValue))
+				CommonSettings.setCommonSetting(CommonSettings.COMMON_SETTING_SHOW_BASALS_ON_CHART, String(chartDisplayBasalsEnabledValue));
+			
+			if (CommonSettings.getCommonSetting(CommonSettings.COMMON_SETTING_DOWNLOAD_NIGHTSCOUT_BASALS) != String(downloadNSBasalsEnabledValue))
+				CommonSettings.setCommonSetting(CommonSettings.COMMON_SETTING_DOWNLOAD_NIGHTSCOUT_BASALS, String(downloadNSBasalsEnabledValue));
 			
 			needsSave = false;
 		}
@@ -331,11 +343,13 @@ package ui.screens.display.settings.treatments
 		private function onSettingsChanged(e:Event):void
 		{	
 			treatmentsEnabledValue = treatmentsEnabled.isSelected;
-			chartDisplayEnabledValue = chartDisplayEnabled.isSelected;
+			chartDisplayTreatmentsEnabledValue = chartDisplayTreatmentsEnabled.isSelected;
 			nightscoutSyncEnabledValue = nightscoutSyncEnabled.isSelected;
 			displayIOBEnabledValue = displayIOBEnabled.isSelected;
 			displayCOBEnabledValue = displayCOBEnabled.isSelected;
 			pumpUserEnabledValue = pumpUserEnabled.isSelected;
+			chartDisplayBasalsEnabledValue = chartDisplayBasalsEnabled.isSelected;
+			downloadNSBasalsEnabledValue = downloadNSBasalsEnabled.isSelected;
 			
 			refreshContent();
 			
@@ -345,11 +359,6 @@ package ui.screens.display.settings.treatments
 		private function onLoadInstructions(e:Event):void
 		{
 			navigateToURL(new URLRequest("https://github.com/SpikeApp/Spike/wiki/Treatments"));
-		}
-		
-		private function onSendConfigurationFiles(e:Event):void
-		{
-			WorkflowConfigSender.displayWorkflowConfigSender(WorkflowConfigSender.WORKFLOW_TREATMENTS);
 		}
 		
 		private function onColorPaletteOpened(e:Event):void
@@ -506,11 +515,18 @@ package ui.screens.display.settings.treatments
 				treatmentsEnabled = null;
 			}
 			
-			if (chartDisplayEnabled != null)
+			if (chartDisplayTreatmentsEnabled != null)
 			{
-				chartDisplayEnabled.removeEventListener(Event.CHANGE, onSettingsChanged);
-				chartDisplayEnabled.dispose();
-				chartDisplayEnabled = null;
+				chartDisplayTreatmentsEnabled.removeEventListener(Event.CHANGE, onSettingsChanged);
+				chartDisplayTreatmentsEnabled.dispose();
+				chartDisplayTreatmentsEnabled = null;
+			}
+			
+			if (chartDisplayBasalsEnabled != null)
+			{
+				chartDisplayBasalsEnabled.removeEventListener(Event.CHANGE, onSettingsChanged);
+				chartDisplayBasalsEnabled.dispose();
+				chartDisplayBasalsEnabled = null;
 			}
 			
 			if (nightscoutSyncEnabled != null)
@@ -518,6 +534,13 @@ package ui.screens.display.settings.treatments
 				nightscoutSyncEnabled.removeEventListener(Event.CHANGE, onSettingsChanged);
 				nightscoutSyncEnabled.dispose();
 				nightscoutSyncEnabled = null;
+			}
+			
+			if (downloadNSBasalsEnabled != null)
+			{
+				downloadNSBasalsEnabled.removeEventListener(Event.CHANGE, onSettingsChanged);
+				downloadNSBasalsEnabled.dispose();
+				downloadNSBasalsEnabled = null;
 			}
 			
 			if (displayIOBEnabled != null)
@@ -600,13 +623,6 @@ package ui.screens.display.settings.treatments
 				loadInstructions.removeEventListener(Event.TRIGGERED, onLoadInstructions);
 				loadInstructions.dispose();
 				loadInstructions = null;
-			}
-			
-			if (emailConfigurationFiles != null)
-			{
-				emailConfigurationFiles.removeEventListener(Event.TRIGGERED, onSendConfigurationFiles);
-				emailConfigurationFiles.dispose();
-				emailConfigurationFiles = null;
 			}
 			
 			if (pumpUserEnabled != null)

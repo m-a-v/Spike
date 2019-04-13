@@ -14,6 +14,19 @@ package treatments
 		public static const TYPE_GLUCOSE_CHECK:String = "glucoseCheck";
 		public static const TYPE_NOTE:String = "note";
 		public static const TYPE_SENSOR_START:String = "sensorStart";
+		public static const TYPE_EXTENDED_COMBO_BOLUS_PARENT:String = "extendedComboBolusParent";
+		public static const TYPE_EXTENDED_COMBO_MEAL_PARENT:String = "extendedComboMealParent";
+		public static const TYPE_EXTENDED_COMBO_BOLUS_CHILD:String = "extendedComboBolusChild";
+		public static const TYPE_EXERCISE:String = "exercise";
+		public static const TYPE_PUMP_SITE_CHANGE:String = "pumpSiteChange";
+		public static const TYPE_PUMP_BATTERY_CHANGE:String = "pumpBatteryChange";
+		public static const TYPE_INSULIN_CARTRIDGE_CHANGE:String = "insulinCartridgeChange";
+		public static const TYPE_TEMP_BASAL:String = "tempBasal";
+		public static const TYPE_TEMP_BASAL_END:String = "tempBasalEnd";
+		public static const TYPE_MDI_BASAL:String = "mdiBasal";
+		public static const EXERCISE_INTENSITY_LOW:String = "low";
+		public static const EXERCISE_INTENSITY_MODERATE:String = "moderate";
+		public static const EXERCISE_INTENSITY_HIGH:String = "high";
 		
 		/* Internal Constants */
 		private static const INSULIN_PEAK:uint = 75;
@@ -32,9 +45,20 @@ package treatments
 		private var insulinScaleFactor:Number;
 		public var needsAdjustment:Boolean = false;
 		public var carbDelayTime:Number = 20;
-		public var basalDuration:Number = 0;
+		public var preBolus:Number = Number.NaN;
+		public var childTreatments:Array = [];
+		public var duration:Number = Number.NaN;
+		public var exerciseIntensity:String = "";
 		
-		public function Treatment(type:String, timestamp:Number, insulin:Number = 0, insulinID:String = "", carbs:Number = 0, glucose:Number = 100, glucoseEstimated:Number = 100, note:String = "", treatmentID:String = null, carbDelayTime:Number = Number.NaN, basalDuration:Number = 0)
+		/* Basal */
+		public var basalDuration:Number = 0;
+		public var basalAbsoluteAmount:Number = 0;
+		public var isBasalAbsolute:Boolean = false;
+		public var basalPercentAmount:Number = 0;
+		public var isBasalRelative:Boolean = false;
+		public var isTempBasalEnd:Boolean = false;
+		
+		public function Treatment(type:String, timestamp:Number, insulin:Number = 0, insulinID:String = "", carbs:Number = 0, glucose:Number = 100, glucoseEstimated:Number = 100, note:String = "", treatmentID:String = null, carbDelayTime:Number = Number.NaN)
 		{
 			this.type = type;
 			this.insulinAmount = insulin;
@@ -53,7 +77,6 @@ package treatments
 			this.insulinScaleFactor = 3 / dia;
 			this.ID = treatmentID == null ? UniqueId.createEventId() : treatmentID;
 			this.carbDelayTime = isNaN(carbDelayTime) ? Number(CommonSettings.getCommonSetting(CommonSettings.COMMON_SETTING_DEFAULT_CARB_ABSORTION_TIME)) : carbDelayTime;
-			this.basalDuration = basalDuration;
 		}
 		
 		/**
@@ -263,6 +286,40 @@ package treatments
 			{
 				return null;
 			}
+		}
+		
+		public function parseChildren(children:String):void
+		{
+			if (children == null || children.length == 0)
+				return;
+			
+			childTreatments = children.split(",");
+		}
+		
+		public function extractChildren():String
+		{
+			return childTreatments.join(",");
+		}
+		
+		public function getTotalInsulin(onlyChildren:Boolean = false):Number
+		{
+			if ((type != TYPE_EXTENDED_COMBO_BOLUS_PARENT && type != TYPE_EXTENDED_COMBO_MEAL_PARENT) || childTreatments.length == 0)
+			{
+				return insulinAmount;
+			}
+			
+			var parentInsulinAmount:Number = onlyChildren ? 0 : insulinAmount;
+			var numberOfChildren:uint = childTreatments.length;
+			for (var i:int = 0; i < numberOfChildren; i++) 
+			{
+				var childTreatment:Treatment = TreatmentsManager.getTreatmentByID(String(childTreatments[i]));
+				if (childTreatment != null)
+				{
+					parentInsulinAmount += childTreatment.insulinAmount;
+				}
+			}
+			
+			return parentInsulinAmount;
 		}
 
 		/**

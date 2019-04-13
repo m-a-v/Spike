@@ -17,8 +17,11 @@ package utils
 		/**
 		 * Constants that hold time in milliseconds
 		 */
+		public static const TIME_2_WEEKS:int = 1209600000;
+		public static const TIME_1_WEEK:int = 604800000;
+		public static const TIME_48_HOURS:int = 172800000;
 		public static const TIME_24_HOURS_6_MINUTES:int = 86760000;
-		public static const TIME_24_HOURS:int = 86400000
+		public static const TIME_24_HOURS:int = 86400000;
 		public static const TIME_23_HOURS_59_MINUTES:int = 86340000;
 		public static const TIME_23_HOURS_57_MINUTES:int = 82620000;
 		public static const TIME_8_HOURS:int = 28800000;
@@ -38,6 +41,7 @@ package utils
 		public static const TIME_7_MINUTES:int = 420000;
 		public static const TIME_6_MINUTES:int = 360000;
 		public static const TIME_5_MINUTES_30_SECONDS:int = 330000;
+		public static const TIME_5_MINUTES_20_SECONDS:int = 320000;
 		public static const TIME_5_MINUTES_10_SECONDS:int = 310000;
 		public static const TIME_5_MINUTES:int = 300000;
 		public static const TIME_4_MINUTES_45_SECONDS:int = 315000;
@@ -212,6 +216,17 @@ package utils
 			}
 			
 			return totalOutput;
+		}
+		
+		public static function getFormattedDateFromTimestamp(timestamp:Number):String
+		{
+			//Calculate Age
+			var realDate:Date = new Date(timestamp)
+			var nowDate:Date = new Date();
+			var realDays:String = fromDates(realDate, nowDate).days.toString();
+			var realHours:String = fromDates(realDate, nowDate).hours.toString();
+			
+			return realDays + "d " + realHours + "h";
 		}
 		
 		/**

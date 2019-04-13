@@ -55,6 +55,18 @@ package ui.screens.display.treatments
 		private var treatmentsImage:Image;
 		private var bolusWizardTexture:Texture;
 		private var bolusWizardImage:Image;
+		private var exerciseTexture:Texture;
+		private var exerciseImage:Image;
+		private var insulinCartridgeTexture:Texture;
+		private var insulinCartridgeImage:Image;
+		private var pumpSiteTexture:Texture;
+		private var pumpSiteImage:Image;
+		private var pumpBatteryTexture:Texture;
+		private var pumpBatteryImage:Image;
+		private var basalStartTexture:Texture;
+		private var basalStartImage:Image;
+		private var basalEndTexture:Texture;
+		private var basalEndImage:Image;
 		
 		/* Properties */
 		private var calibrationButtonEnabled:Boolean = false;
@@ -62,7 +74,7 @@ package ui.screens.display.treatments
 		private var numBgReadings:int = 0;
 		private var canAddTreatments:Boolean = false;
 		private var canSeeTreatments:Boolean = false;
-		
+
 		public function TreatmentsList()
 		{
 			super();
@@ -106,6 +118,10 @@ package ui.screens.display.treatments
 			{
 				bolusTexture = MaterialDeepGreyAmberMobileThemeIcons.insulinTexture;
 				bolusImage = new Image(bolusTexture);
+				basalStartTexture = MaterialDeepGreyAmberMobileThemeIcons.basalStartTexture;
+				basalStartImage = new Image(basalStartTexture);
+				basalEndTexture = MaterialDeepGreyAmberMobileThemeIcons.basalEndTexture;
+				basalEndImage = new Image(basalEndTexture);
 				carbsTexture = MaterialDeepGreyAmberMobileThemeIcons.carbsTexture;
 				carbsImage = new Image(carbsTexture);
 				mealTexture = MaterialDeepGreyAmberMobileThemeIcons.mealTexture;
@@ -116,7 +132,16 @@ package ui.screens.display.treatments
 				noteImage = new Image(noteTexture);
 				bolusWizardTexture = MaterialDeepGreyAmberMobileThemeIcons.bolusWizardTexture;
 				bolusWizardImage = new Image(bolusWizardTexture);
+				exerciseTexture = MaterialDeepGreyAmberMobileThemeIcons.exerciseTexture;
+				exerciseImage = new Image(exerciseTexture);
+				insulinCartridgeTexture = MaterialDeepGreyAmberMobileThemeIcons.insulinCartridgeTexture;
+				insulinCartridgeImage = new Image(insulinCartridgeTexture);
+				pumpSiteTexture = MaterialDeepGreyAmberMobileThemeIcons.pumpSiteTexture;
+				pumpSiteImage = new Image(pumpSiteTexture);
+				pumpBatteryTexture = MaterialDeepGreyAmberMobileThemeIcons.pumpBatteryTexture;
+				pumpBatteryImage = new Image(pumpBatteryTexture);
 			}
+			
 			if (treatmentsEnabled)
 			{
 				treatmentsTexture = MaterialDeepGreyAmberMobileThemeIcons.treatmentsTexture;
@@ -145,13 +170,29 @@ package ui.screens.display.treatments
 				menuData.push( { label: ModelLocator.resourceManagerInstance.getString('treatments','treatment_name_bolus'), icon: bolusImage, selectable: canAddTreatments, id: 2 } );
 				menuData.push( { label: ModelLocator.resourceManagerInstance.getString('treatments','treatment_name_carbs'), icon: carbsImage, selectable: canAddTreatments, id: 3 } );
 				menuData.push( { label: ModelLocator.resourceManagerInstance.getString('treatments','treatment_name_meal'), icon: mealImage, selectable: canAddTreatments, id: 4 } );
-				menuData.push( { label: ModelLocator.resourceManagerInstance.getString('treatments','bolus_wizard_settings_label'), icon: bolusWizardImage, selectable: canAddTreatments, id: 5 } );
-				menuData.push( { label: ModelLocator.resourceManagerInstance.getString('treatments','treatment_name_bg_check'), icon: bgCheckImage, selectable: canAddTreatments, id: 6 } );
-				menuData.push( { label: ModelLocator.resourceManagerInstance.getString('treatments','treatment_name_note'), icon: noteImage, selectable: canAddTreatments, id: 7 } );
+				if (CommonSettings.getCommonSetting(CommonSettings.COMMON_SETTING_USER_TYPE_PUMP_OR_MDI) == "pump")
+				{
+					menuData.push( { label: ModelLocator.resourceManagerInstance.getString('treatments','treatment_name_temp_basal_start'), icon: basalStartImage, selectable: canAddTreatments, id: 5 } );
+					menuData.push( { label: ModelLocator.resourceManagerInstance.getString('treatments','treatment_name_temp_basal_end'), icon: basalEndImage, selectable: canAddTreatments, id: 6 } );
+				}
+				else if (CommonSettings.getCommonSetting(CommonSettings.COMMON_SETTING_USER_TYPE_PUMP_OR_MDI) == "mdi")
+				{
+					menuData.push( { label: ModelLocator.resourceManagerInstance.getString('treatments','treatment_name_basal'), icon: basalStartImage, selectable: canAddTreatments, id: 7 } );
+				}
+				menuData.push( { label: ModelLocator.resourceManagerInstance.getString('treatments','bolus_wizard_settings_label'), icon: bolusWizardImage, selectable: canAddTreatments, id: 8 } );
+				menuData.push( { label: ModelLocator.resourceManagerInstance.getString('treatments','treatment_name_bg_check'), icon: bgCheckImage, selectable: canAddTreatments, id: 9 } );
+				menuData.push( { label: ModelLocator.resourceManagerInstance.getString('treatments','treatment_name_note'), icon: noteImage, selectable: canAddTreatments, id: 10 } );
+				menuData.push( { label: ModelLocator.resourceManagerInstance.getString('treatments','treatment_name_exercise'), icon: exerciseImage, selectable: canAddTreatments, id: 11 } );
+				if (CommonSettings.getCommonSetting(CommonSettings.COMMON_SETTING_USER_TYPE_PUMP_OR_MDI) == "pump")
+				{
+					menuData.push( { label: ModelLocator.resourceManagerInstance.getString('treatments','treatment_name_insulin_cartridge_change'), icon: insulinCartridgeImage, selectable: canAddTreatments, id: 12 } );
+					menuData.push( { label: ModelLocator.resourceManagerInstance.getString('treatments','treatment_name_pump_site_change'), icon: pumpSiteImage, selectable: canAddTreatments, id: 13 } );
+					menuData.push( { label: ModelLocator.resourceManagerInstance.getString('treatments','treatment_name_pump_battery_change'), icon: pumpBatteryImage, selectable: canAddTreatments, id: 14 } );
+				}
 			}
 			if (treatmentsEnabled)
 			{
-				menuData.push( { label: ModelLocator.resourceManagerInstance.getString('treatments','treatments_screen_title'), icon: treatmentsImage, selectable: canSeeTreatments, id: 8 } );
+				menuData.push( { label: ModelLocator.resourceManagerInstance.getString('treatments','treatments_screen_title'), icon: treatmentsImage, selectable: canSeeTreatments, id: 15 } );
 			}
 			
 			dataProvider = new ListCollection(menuData);
@@ -215,9 +256,9 @@ package ui.screens.display.treatments
 				{
 					if(index === 0 && !CGMBlueToothDevice.isFollower() || ModelLocator.INTERNAL_TESTING)
 						return "calibration-item";
-					else if(index == 0 || index == 1 || index == 2 || index == 3 || index == 4 || index == 5 || index == 6 || index == 7)
+					else if(index == 0 || index == 1 || index == 2 || index == 3 || index == 4 || index == 5 || index == 6 || index == 7 || index == 8 || index == 9 || index == 10 || index == 11 || index == 12 || index == 13 || index == 14 || index == 15)
 						return "treatment-item";
-					else if(index == 8)
+					else if(index == 16)
 						return "treatment-list-item";
 					
 					return "default-item";
@@ -269,25 +310,67 @@ package ui.screens.display.treatments
 				
 				TreatmentsManager.addTreatment(Treatment.TYPE_MEAL_BOLUS);
 			}
-			else if(treatmentID == 5) //Bolus Wizard
+			else if(treatmentID == 5) //Temp Basal Start
+			{	
+				dispatchEventWith(CLOSE); //Close Menu
+				
+				TreatmentsManager.addTreatment(Treatment.TYPE_TEMP_BASAL);
+			}
+			else if(treatmentID == 6) //Temp Basal Start
+			{	
+				dispatchEventWith(CLOSE); //Close Menu
+				
+				TreatmentsManager.addTreatment(Treatment.TYPE_TEMP_BASAL_END);
+			}
+			else if(treatmentID == 7) //Pen Basal
+			{	
+				dispatchEventWith(CLOSE); //Close Menu
+				
+				TreatmentsManager.addTreatment(Treatment.TYPE_MDI_BASAL);
+			}
+			else if(treatmentID == 8) //Bolus Wizard
 			{	
 				dispatchEventWith(CLOSE); //Close Menu
 				
 				BolusWizard.display();
 			}
-			else if(treatmentID == 6) //BG Check
+			else if(treatmentID == 9) //BG Check
 			{	
 				dispatchEventWith(CLOSE); //Close Menu
 				
 				TreatmentsManager.addTreatment(Treatment.TYPE_GLUCOSE_CHECK);
 			}
-			else if(treatmentID == 7) //Note
+			else if(treatmentID == 10) //Note
 			{	
 				dispatchEventWith(CLOSE); //Close Menu
 				
 				TreatmentsManager.addTreatment(Treatment.TYPE_NOTE);
 			}
-			else if(treatmentID == 8) //Treatments Manager
+			else if(treatmentID == 11) //Exercise
+			{	
+				dispatchEventWith(CLOSE); //Close Menu
+				
+				TreatmentsManager.addTreatment(Treatment.TYPE_EXERCISE);
+			}
+			else if(treatmentID == 12) //Insulin Cartridge
+			{	
+				dispatchEventWith(CLOSE); //Close Menu
+				
+				TreatmentsManager.addTreatment(Treatment.TYPE_INSULIN_CARTRIDGE_CHANGE);
+			}
+			else if(treatmentID == 13) //Pump Site
+			{	
+				dispatchEventWith(CLOSE); //Close Menu
+				
+				TreatmentsManager.addTreatment(Treatment.TYPE_PUMP_SITE_CHANGE);
+			}
+			else if(treatmentID == 14) //Pump Battery
+			{	
+				dispatchEventWith(CLOSE); //Close Menu
+				
+				TreatmentsManager.addTreatment(Treatment.TYPE_PUMP_BATTERY_CHANGE);
+			}
+			else if(treatmentID == 15) //Treatments Manager
 			{	
 				dispatchEventWith(CLOSE); //Close Menu
 				
@@ -396,6 +479,34 @@ package ui.screens.display.treatments
 				mealImage = null;
 			}
 			
+			if (basalStartTexture != null)
+			{
+				basalStartTexture.dispose();
+				basalStartTexture = null;
+			}
+			
+			if (basalStartImage != null)
+			{
+				if (basalStartImage.texture != null)
+					basalStartImage.texture.dispose();
+				basalStartImage.dispose();
+				basalStartImage = null;
+			}
+			
+			if (basalEndTexture != null)
+			{
+				basalEndTexture.dispose();
+				basalEndTexture = null;
+			}
+			
+			if (basalEndImage != null)
+			{
+				if (basalEndImage.texture != null)
+					basalEndImage.texture.dispose();
+				basalEndImage.dispose();
+				basalEndImage = null;
+			}
+			
 			if (treatmentsTexture != null)
 			{
 				treatmentsTexture.dispose();
@@ -418,8 +529,66 @@ package ui.screens.display.treatments
 			
 			if (bolusWizardImage != null)
 			{
+				if (bolusWizardImage.texture != null)
+					bolusWizardImage.texture.dispose();
 				bolusWizardImage.dispose();
 				bolusWizardImage = null;
+			}
+			
+			if (exerciseTexture != null)
+			{
+				exerciseTexture.dispose();
+				exerciseTexture = null;
+			}
+			
+			if (exerciseImage != null)
+			{
+				if (exerciseImage.texture != null)
+					exerciseImage.texture.dispose();
+				exerciseImage.dispose();
+				exerciseImage = null;
+			}
+			
+			if (insulinCartridgeTexture != null)
+			{
+				insulinCartridgeTexture.dispose();
+				insulinCartridgeTexture = null;
+			}
+			
+			if (insulinCartridgeImage != null)
+			{
+				if (insulinCartridgeImage.texture != null)
+					insulinCartridgeImage.texture.dispose();
+				insulinCartridgeImage.dispose();
+				insulinCartridgeImage = null;
+			}
+			
+			if (pumpSiteTexture != null)
+			{
+				pumpSiteTexture.dispose();
+				pumpSiteTexture = null;
+			}
+			
+			if (pumpSiteImage != null)
+			{
+				if (pumpSiteImage.texture != null)
+					pumpSiteImage.texture.dispose();
+				pumpSiteImage.dispose();
+				pumpSiteImage = null;
+			}
+			
+			if (pumpBatteryTexture != null)
+			{
+				pumpBatteryTexture.dispose();
+				pumpBatteryTexture = null;
+			}
+			
+			if (pumpBatteryImage != null)
+			{
+				if (pumpBatteryImage.texture != null)
+					pumpBatteryImage.texture.dispose();
+				pumpBatteryImage.dispose();
+				pumpBatteryImage = null;
 			}
 			
 			super.dispose();

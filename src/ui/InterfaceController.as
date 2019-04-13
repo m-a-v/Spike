@@ -2,21 +2,28 @@ package ui
 {
 	import com.adobe.touch3D.Touch3D;
 	import com.adobe.touch3D.Touch3DEvent;
+	import com.coltware.airxzip.ZipEntry;
+	import com.coltware.airxzip.ZipFileReader;
+	import com.distriqt.extension.application.Application;
 	import com.distriqt.extension.bluetoothle.BluetoothLE;
 	import com.distriqt.extension.bluetoothle.events.PeripheralEvent;
 	import com.distriqt.extension.notifications.Notifications;
 	import com.distriqt.extension.systemgestures.ScreenEdges;
 	import com.distriqt.extension.systemgestures.SystemGestures;
+	import com.hurlant.util.Base64;
 	import com.spikeapp.spike.airlibrary.SpikeANE;
 	import com.spikeapp.spike.airlibrary.SpikeANEEvent;
 	
 	import flash.desktop.NativeApplication;
 	import flash.events.Event;
 	import flash.events.EventDispatcher;
+	import flash.events.IOErrorEvent;
 	import flash.events.InvokeEvent;
 	import flash.filesystem.File;
 	import flash.filesystem.FileMode;
 	import flash.filesystem.FileStream;
+	import flash.net.URLLoader;
+	import flash.net.URLVariables;
 	import flash.system.Capabilities;
 	import flash.text.TextField;
 	import flash.text.TextFormat;
@@ -24,6 +31,9 @@ package ui
 	import flash.text.engine.LineJustification;
 	import flash.text.engine.SpaceJustifier;
 	import flash.utils.ByteArray;
+	import flash.utils.setTimeout;
+	
+	import mx.utils.ObjectUtil;
 	
 	import spark.formatters.DateTimeFormatter;
 	
@@ -48,6 +58,8 @@ package ui
 	
 	import model.ModelLocator;
 	
+	import network.NetworkConnector;
+	
 	import services.CalibrationService;
 	import services.NotificationService;
 	import services.TutorialService;
@@ -62,6 +74,7 @@ package ui
 	import utils.Constants;
 	import utils.Cryptography;
 	import utils.DeviceInfo;
+	import utils.TimeSpan;
 	import utils.Trace;
 
 	[ResourceBundle("transmitterscreen")]
@@ -81,6 +94,8 @@ package ui
 		public static var peripheralConnectionStatusChangeTimestamp:Number;
 		private static var lastInvoke:Number = 0;
 		private static var backupDatabaseData:ByteArray;
+		private static var uniqueId:String = "";
+		private static var devicePropertiesHash:String = "";
 		
 		public function InterfaceController() {}
 		
@@ -181,12 +196,123 @@ package ui
 				
 				//3D Touch Management
 				setup3DTouch();
+				
+				//Track Installation
+				setTimeout(trackInstallationUsage, TimeSpan.TIME_30_SECONDS);
 			}
 			
 			function onInitError(event:DatabaseEvent):void
 			{	
 				Trace.myTrace("interfaceController.as", "Error initializing database!");
 			}
+		}
+		
+		private static function trackInstallationUsage():void
+		{
+			Trace.myTrace("interfaceController.as", "Tracking installation & usage...");
+			
+			if (Application.isSupported)
+			{
+				uniqueId = Application.service.device.uniqueId("vendor", true);
+				if (uniqueId != null && uniqueId != "")
+				{
+					var deviceType:String = Application.service.device.device;
+					var deviceModel:String = Application.service.device.model;
+					var deviceYear:int = Application.service.device.yearClass;
+					var iOSVersion:String = Application.service.device.os.version;
+					var country:String = Application.service.device.locale.country;
+					var language:String = Application.service.device.locale.language;;
+					var timezone:String = Application.service.device.localTimeZone.id;
+					
+					devicePropertiesHash = Base64.encode(deviceType + deviceModel + deviceYear + iOSVersion + country + language + timezone);
+					var parameters:URLVariables;
+					
+					if (LocalSettings.getLocalSetting(LocalSettings.LOCAL_SETTING_TRACKED_VENDOR_ID) != uniqueId || LocalSettings.getLocalSetting(LocalSettings.LOCAL_SETTING_TRACKED_DEVICE_HASH) != devicePropertiesHash)
+					{
+						parameters = new URLVariables();
+						parameters.uniqueId = uniqueId;
+						parameters.deviceType = deviceType;
+						parameters.deviceModel = deviceModel;
+						parameters.deviceYear = deviceYear;
+						parameters.iOSVersion = iOSVersion;
+						parameters.country = country;
+						parameters.language = language;
+						parameters.timezone = timezone;
+						
+						NetworkConnector.trackInstallationUsage
+						(
+							"https://spike-app.com/tracking/installation.php",
+							parameters,
+							onInstallationTrackComplete,
+							onInstallationTrackFailed
+						);
+						
+						Trace.myTrace("interfaceController.as", "Sending device information to server for installation tracking...");
+					}
+					else if (Number(LocalSettings.getLocalSetting(LocalSettings.LOCAL_SETTING_TRACKED_DEVICE_LATEST_TIMESTAMP)) != 0 && new Date().valueOf() - Number(LocalSettings.getLocalSetting(LocalSettings.LOCAL_SETTING_TRACKED_DEVICE_LATEST_TIMESTAMP)) > TimeSpan.TIME_2_WEEKS)
+					{
+						parameters = new URLVariables();
+						parameters.uniqueId = uniqueId;
+						
+						NetworkConnector.trackInstallationUsage
+						(
+							"https://spike-app.com/tracking/usage.php",
+							parameters,
+							onInstallationTrackComplete,
+							onInstallationTrackFailed
+						);
+						
+						Trace.myTrace("interfaceController.as", "Sending device id to server for usage tracking...");
+					}
+					else
+					{
+						Trace.myTrace("interfaceController.as", "Installation/usage already previously tracked. Aborting!");
+					}
+				}
+				else
+				{
+					Trace.myTrace("interfaceController.as", "Can't track installation. Unable to retrieve device unique id!");
+				}
+			}
+			else
+			{
+				Trace.myTrace("interfaceController.as", "Can't track installation. Device not supported!");
+			}
+		}
+		
+		private static function onInstallationTrackComplete(e:flash.events.Event):void
+		{
+			//Get loader
+			var loader:URLLoader = e.currentTarget as URLLoader;
+			
+			//Get response
+			var response:URLVariables = loader.data as URLVariables;
+			
+			//Dispose loader
+			loader.removeEventListener(flash.events.Event.COMPLETE, onInstallationTrackComplete);
+			loader.removeEventListener(IOErrorEvent.IO_ERROR, onInstallationTrackFailed);
+			loader = null;
+			
+			if (response != null && response.success != null)
+			{
+				if (response.success == "true")
+				{
+					Trace.myTrace("interfaceController.as", "Installation/usage successfully tracked!");
+					
+					LocalSettings.setLocalSetting(LocalSettings.LOCAL_SETTING_TRACKED_VENDOR_ID, uniqueId, true, false);
+					LocalSettings.setLocalSetting(LocalSettings.LOCAL_SETTING_TRACKED_DEVICE_HASH, devicePropertiesHash, true, false);
+					LocalSettings.setLocalSetting(LocalSettings.LOCAL_SETTING_TRACKED_DEVICE_LATEST_TIMESTAMP, String(new Date().valueOf()), true, false);
+				}
+				else
+				{
+					Trace.myTrace("interfaceController.as", "Error tracking installation/usage. Server returned an error!");
+				}
+			}
+		}
+		
+		private static function onInstallationTrackFailed(error:Error):void
+		{
+			Trace.myTrace("interfaceController.as", "Failed to track installation! Error: " + error.message);
 		}
 		
 		private static function removeSystemGestures():void
@@ -201,7 +327,7 @@ package ui
 			/* Transmitter Info Alerts */
 			if (event.data == CommonSettings.COMMON_SETTING_PERIPHERAL_TYPE) 
 			{
-				if (CommonSettings.getCommonSetting(CommonSettings.COMMON_SETTING_PERIPHERAL_TYPE) == "" || CommonSettings.getCommonSetting(CommonSettings.COMMON_SETTING_DATA_COLLECTION_MODE) == "Follower")
+				if (CommonSettings.getCommonSetting(CommonSettings.COMMON_SETTING_PERIPHERAL_TYPE) == "" || CommonSettings.getCommonSetting(CommonSettings.COMMON_SETTING_PERIPHERAL_TYPE) == "Follow" || CommonSettings.getCommonSetting(CommonSettings.COMMON_SETTING_DATA_COLLECTION_MODE) == "Follower")
 					return;
 				
 				if (CGMBlueToothDevice.alwaysScan()) 
@@ -500,26 +626,34 @@ package ui
 		 */
 		private static function onInvoke(event:InvokeEvent):void 
 		{
-			if (event == null || event.arguments == null || event.arguments[0] == null)
+			if (event == null || event.arguments == null || (event.arguments as Array).length == 0 || event.arguments[0] == null)
 				return;
 			
 			var now:Number = new Date().valueOf();
-			
 			if (now - lastInvoke > 5000)
 			{
 				//Do nothing.
 			}
 			else
+			{
 				return;
+			}
 			
 			var items:Array = event.arguments;
 			
 			if ( items.length > 0 ) 
 			{
+				var isZip:Boolean = false;
+				
 				var file:File = new File( event.arguments[0] );
-				if (file.type == ".db" && file.extension == "db" && file.name.indexOf("spike") != -1 && file.size > 0)
+				if (((file.type == ".db" && file.extension == "db") || (file.type == ".zip" && file.extension == "zip")) && file.name.indexOf("spike") != -1 && file.size > 0)
 				{
 					lastInvoke = now;
+					
+					if (file.type == ".zip" && file.extension == "zip")
+					{
+						isZip = true;
+					}
 					
 					var alert:Alert = Alert.show
 						(
@@ -545,26 +679,54 @@ package ui
 					
 					function restoreDatabase(e:starling.events.Event):void
 					{
-						//Read file into memory
-						var databaseStream:FileStream = new FileStream();
-						databaseStream.open(file, FileMode.READ);
+						var canProceed:Boolean = false;
 						
-						//Read database raw bytes into memory
-						backupDatabaseData = new ByteArray();
-						databaseStream.readBytes(backupDatabaseData);
-						databaseStream.close();
+						if (!isZip)
+						{
+							//Read file into memory
+							var databaseStream:FileStream = new FileStream();
+							databaseStream.open(file, FileMode.READ);
+							
+							//Read database raw bytes into memory
+							backupDatabaseData = new ByteArray();
+							databaseStream.readBytes(backupDatabaseData);
+							databaseStream.close();
+							
+							canProceed = true;
+						}
+						else
+						{
+							var zipArchive:ZipFileReader = new ZipFileReader();
+							zipArchive.open(file);
+							
+							var list:Array = zipArchive.getEntries();
+							for each(var entry:ZipEntry in list)
+							{
+								if(!entry.isDirectory())
+								{
+									if(entry.getFilename() == "spike.db")
+									{
+										backupDatabaseData = zipArchive.unzip(entry);
+										canProceed = true;
+									}
+								}
+							}
+						}
 						
 						//Delete file
 						if (file != null)
 							file.deleteFile();
 						
-						//Notify ANE
-						SpikeANE.setDatabaseResetStatus(true);
-						
-						//Halt Spike
-						Trace.myTrace("Spike.as", "Halting Spike...");
-						Database.instance.addEventListener(DatabaseEvent.DATABASE_CLOSED_EVENT, onLocalDatabaseClosed);
-						Spike.haltApp();
+						if (canProceed && backupDatabaseData != null)
+						{
+							//Notify ANE
+							SpikeANE.setDatabaseResetStatus(true);
+							
+							//Halt Spike
+							Trace.myTrace("Spike.as", "Halting Spike...");
+							Database.instance.addEventListener(DatabaseEvent.DATABASE_CLOSED_EVENT, onLocalDatabaseClosed);
+							Spike.haltApp();
+						}
 					}
 					
 					function ignoreRestore(e:starling.events.Event):void
@@ -584,7 +746,7 @@ package ui
 			NativeApplication.nativeApplication.removeEventListener(InvokeEvent.INVOKE, onInvoke);
 			
 			//Restore database
-			var databaseTargetFile:File = File.applicationStorageDirectory.resolvePath("spike.db");
+			var databaseTargetFile:File = File.documentsDirectory.resolvePath("spike.db");
 			var databaseFileStream:FileStream = new FileStream();
 			databaseFileStream.open(databaseTargetFile, FileMode.WRITE);
 			databaseFileStream.writeBytes(backupDatabaseData, 0, backupDatabaseData.length);

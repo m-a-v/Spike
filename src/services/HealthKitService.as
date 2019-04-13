@@ -20,6 +20,7 @@ package services
 	
 	import model.ModelLocator;
 	
+	import treatments.ProfileManager;
 	import treatments.Treatment;
 	import treatments.TreatmentsManager;
 	
@@ -67,8 +68,10 @@ package services
 			LocalSettings.instance.addEventListener(SettingsServiceEvent.SETTING_CHANGED, localSettingChanged);
 			TransmitterService.instance.addEventListener(TransmitterServiceEvent.BGREADING_RECEIVED, bgReadingReceived);
 			NightscoutService.instance.addEventListener(FollowerEvent.BG_READING_RECEIVED, bgReadingReceived);
+			DexcomShareService.instance.addEventListener(FollowerEvent.BG_READING_RECEIVED, bgReadingReceived);
 			CalibrationService.instance.addEventListener(CalibrationServiceEvent.INITIAL_CALIBRATION_EVENT, processInitialBackfillData);
 			TreatmentsManager.instance.addEventListener(TreatmentsEvent.TREATMENT_ADDED, onTreatmentAdded);
+			TreatmentsManager.instance.addEventListener(TreatmentsEvent.BASAL_TREATMENT_ADDED, onTreatmentAdded);
 			
 			//Init ANE
 			if (LocalSettings.getLocalSetting(LocalSettings.LOCAL_SETTING_HEALTHKIT_STORE_ON) == "true") {
@@ -86,32 +89,65 @@ package services
 			{
 				//Store in HealthKit
 				var treatmentAdded:Boolean = false;
+				var bolusInsulinToStore:Number = Math.round((treatment.type != Treatment.TYPE_EXTENDED_COMBO_BOLUS_PARENT ? treatment.insulinAmount : treatment.getTotalInsulin()) * 100) / 100;
+				var carbsToStore:Number = treatment.carbs;
+				var basalInsulinToStore:Number = 0;
 				
-				if ((treatment.type == Treatment.TYPE_BOLUS || treatment.type == Treatment.TYPE_CORRECTION_BOLUS) && treatment.insulinAmount > 0)
+				if ((treatment.type == Treatment.TYPE_BOLUS || treatment.type == Treatment.TYPE_CORRECTION_BOLUS || treatment.type == Treatment.TYPE_EXTENDED_COMBO_BOLUS_PARENT) && treatment.insulinAmount > 0)
 				{
-					Trace.myTrace("HealthKitService.as", "Treatment Type: Bolus, Quantity: " + treatment.insulinAmount + "U, Time: " + new Date(treatment.timestamp).toString());
-					SpikeANE.storeInsulin(treatment.insulinAmount, true, treatment.timestamp);
+					Trace.myTrace("HealthKitService.as", "Treatment Type: Bolus, Quantity: " + bolusInsulinToStore + "U, Time: " + new Date(treatment.timestamp).toString());
+					SpikeANE.storeInsulin(bolusInsulinToStore, true, treatment.timestamp);
 					treatmentAdded = true;
 				}
 				else if (treatment.type == Treatment.TYPE_CARBS_CORRECTION && treatment.carbs > 0)
 				{
-					Trace.myTrace("HealthKitService.as", "Treatment Type: Carbs, Quantity: " + treatment.carbs + "g, Time: " + new Date(treatment.timestamp).toString());
-					SpikeANE.storeCarbInHealthKitGram(treatment.carbs, treatment.timestamp);
+					Trace.myTrace("HealthKitService.as", "Treatment Type: Carbs, Quantity: " + carbsToStore + "g, Time: " + new Date(treatment.timestamp).toString());
+					SpikeANE.storeCarbInHealthKitGram(carbsToStore, treatment.timestamp);
 					treatmentAdded = true;
 				}
-				else if (treatment.type == Treatment.TYPE_MEAL_BOLUS)
+				else if (treatment.type == Treatment.TYPE_MEAL_BOLUS || treatment.type == Treatment.TYPE_EXTENDED_COMBO_MEAL_PARENT)
 				{
-					Trace.myTrace("HealthKitService.as", "Treatment Type: Meal, Insulin Quantity: " + treatment.insulinAmount + "U, Carbs Quantity: " + treatment.carbs + "g, Time: " + new Date(treatment.timestamp).toString());
-					if (treatment.insulinAmount > 0)
+					Trace.myTrace("HealthKitService.as", "Treatment Type: Meal, Insulin Quantity: " + bolusInsulinToStore+ "U, Carbs Quantity: " + carbsToStore + "g, Time: " + new Date(treatment.timestamp).toString());
+					if (bolusInsulinToStore > 0)
 					{
-						SpikeANE.storeInsulin(treatment.insulinAmount, true, treatment.timestamp);
+						SpikeANE.storeInsulin(bolusInsulinToStore, true, treatment.timestamp);
 						treatmentAdded = true;
 					}
-					if (treatment.carbs > 0)
+					if (carbsToStore > 0)
 					{
-						SpikeANE.storeCarbInHealthKitGram(treatment.carbs, treatment.timestamp);
+						SpikeANE.storeCarbInHealthKitGram(carbsToStore, treatment.timestamp);
 						treatmentAdded = true;
 					}
+				}
+				else if (treatment.type == Treatment.TYPE_TEMP_BASAL)
+				{
+					if (treatment.isBasalAbsolute)
+					{
+						basalInsulinToStore = Math.round(treatment.basalAbsoluteAmount * 1000) / 1000;
+					}
+					else if (treatment.isBasalRelative)
+					{
+						var basalRate:Number = ProfileManager.getBasalRateByTime(treatment.timestamp);
+						basalInsulinToStore = basalRate * (100 + treatment.basalPercentAmount) / 100;
+					}
+					
+					if (isNaN(basalInsulinToStore) || treatment.isTempBasalEnd)
+					{
+						basalInsulinToStore = 0;
+					}
+					
+					SpikeANE.storeInsulin(basalInsulinToStore, false, treatment.timestamp);
+				}
+				else if (treatment.type == Treatment.TYPE_MDI_BASAL)
+				{
+					basalInsulinToStore = Math.round(treatment.basalAbsoluteAmount * 1000) / 1000;
+					
+					if (isNaN(basalInsulinToStore))
+					{
+						basalInsulinToStore = 0;
+					}
+					
+					SpikeANE.storeInsulin(basalInsulinToStore, false, treatment.timestamp);
 				}
 				
 				//Add treatment to memory and database to avoid duplicates on the next run
@@ -178,6 +214,7 @@ package services
 			LocalSettings.instance.removeEventListener(SettingsServiceEvent.SETTING_CHANGED, localSettingChanged);
 			TransmitterService.instance.removeEventListener(TransmitterServiceEvent.BGREADING_RECEIVED, bgReadingReceived);
 			NightscoutService.instance.removeEventListener(FollowerEvent.BG_READING_RECEIVED, bgReadingReceived);
+			DexcomShareService.instance.removeEventListener(FollowerEvent.BG_READING_RECEIVED, bgReadingReceived);
 			CalibrationService.instance.removeEventListener(CalibrationServiceEvent.INITIAL_CALIBRATION_EVENT, processInitialBackfillData);
 			TreatmentsManager.instance.removeEventListener(TreatmentsEvent.TREATMENT_ADDED, onTreatmentAdded);
 			

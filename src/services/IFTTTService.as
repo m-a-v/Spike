@@ -24,6 +24,7 @@ package services
 	import network.NetworkConnector;
 	import network.httpserver.HttpServer;
 	
+	import treatments.ProfileManager;
 	import treatments.Treatment;
 	import treatments.TreatmentsManager;
 	
@@ -91,6 +92,27 @@ package services
 		private static var isIFTTTFastRiseSnoozedEnabled:Boolean;
 		private static var isIFTTTFastDropTriggeredEnabled:Boolean;
 		private static var isIFTTTFastDropSnoozedEnabled:Boolean;
+		private static var isIFTTTexerciseTreatmentAddedEnabled:Boolean;
+		private static var isIFTTTexerciseTreatmentUpdatedEnabled:Boolean;
+		private static var isIFTTTexerciseTreatmentDeletedEnabled:Boolean;
+		private static var isIFTTTinsulinCartridgeTreatmentAddedEnabled:Boolean;
+		private static var isIFTTTinsulinCartridgeTreatmentUpdatedEnabled:Boolean;
+		private static var isIFTTTinsulinCartridgeTreatmentDeletedEnabled:Boolean;
+		private static var isIFTTTpumpSiteTreatmentAddedEnabled:Boolean;
+		private static var isIFTTTpumpSiteTreatmentUpdatedEnabled:Boolean;
+		private static var isIFTTTpumpSiteTreatmentDeletedEnabled:Boolean;
+		private static var isIFTTTpumpBatteryTreatmentAddedEnabled:Boolean;
+		private static var isIFTTTpumpBatteryTreatmentUpdatedEnabled:Boolean;
+		private static var isIFTTTpumpBatteryTreatmentDeletedEnabled:Boolean;
+		private static var isIFTTTtempBasalStartAddedEnabled:Boolean;
+		private static var isIFTTTtempBasalStartUpdatedEnabled:Boolean;
+		private static var isIFTTTtempBasalStartDeletedEnabled:Boolean;
+		private static var isIFTTTtempBasalEndAddedEnabled:Boolean;
+		private static var isIFTTTtempBasalEndUpdatedEnabled:Boolean;
+		private static var isIFTTTtempBasalEndDeletedEnabled:Boolean;
+		private static var isIFTTTmdiBasalAddedEnabled:Boolean;
+		private static var isIFTTTmdiBasalUpdatedEnabled:Boolean;
+		private static var isIFTTTmdiBasalDeletedEnabled:Boolean;
 		
 		public function IFTTTService()
 		{
@@ -155,7 +177,28 @@ package services
 				e.data == LocalSettings.LOCAL_SETTING_IFTTT_NOTE_UPDATED_ON ||
 				e.data == LocalSettings.LOCAL_SETTING_IFTTT_NOTE_DELETED_ON ||
 				e.data == LocalSettings.LOCAL_SETTING_IFTTT_IOB_UPDATED_ON ||
-				e.data == LocalSettings.LOCAL_SETTING_IFTTT_COB_UPDATED_ON
+				e.data == LocalSettings.LOCAL_SETTING_IFTTT_COB_UPDATED_ON ||
+				e.data == LocalSettings.LOCAL_SETTING_IFTTT_EXERCISE_ADDED_ON ||
+				e.data == LocalSettings.LOCAL_SETTING_IFTTT_EXERCISE_UPDATED_ON ||
+				e.data == LocalSettings.LOCAL_SETTING_IFTTT_EXERCISE_DELETED_ON ||
+				e.data == LocalSettings.LOCAL_SETTING_IFTTT_INSULIN_CARTRIDGE_ADDED_ON ||
+				e.data == LocalSettings.LOCAL_SETTING_IFTTT_INSULIN_CARTRIDGE_UPDATED_ON ||
+				e.data == LocalSettings.LOCAL_SETTING_IFTTT_INSULIN_CARTRIDGE_DELETED_ON ||
+				e.data == LocalSettings.LOCAL_SETTING_IFTTT_PUMP_SITE_ADDED_ON ||
+				e.data == LocalSettings.LOCAL_SETTING_IFTTT_PUMP_SITE_UPDATED_ON ||
+				e.data == LocalSettings.LOCAL_SETTING_IFTTT_PUMP_SITE_DELETED_ON ||
+				e.data == LocalSettings.LOCAL_SETTING_IFTTT_PUMP_BATTERY_ADDED_ON ||
+				e.data == LocalSettings.LOCAL_SETTING_IFTTT_PUMP_BATTERY_UPDATED_ON ||
+				e.data == LocalSettings.LOCAL_SETTING_IFTTT_PUMP_BATTERY_DELETED_ON ||
+				e.data == LocalSettings.LOCAL_SETTING_IFTTT_TEMP_BASAL_START_ADDED_ON ||
+				e.data == LocalSettings.LOCAL_SETTING_IFTTT_TEMP_BASAL_START_UPDATED_ON ||
+				e.data == LocalSettings.LOCAL_SETTING_IFTTT_TEMP_BASAL_START_DELETED_ON ||
+				e.data == LocalSettings.LOCAL_SETTING_IFTTT_TEMP_BASAL_END_ADDED_ON ||
+				e.data == LocalSettings.LOCAL_SETTING_IFTTT_TEMP_BASAL_END_UPDATED_ON ||
+				e.data == LocalSettings.LOCAL_SETTING_IFTTT_TEMP_BASAL_END_DELETED_ON ||
+				e.data == LocalSettings.LOCAL_SETTING_IFTTT_MDI_BASAL_ADDED_ON ||
+				e.data == LocalSettings.LOCAL_SETTING_IFTTT_MDI_BASAL_UPDATED_ON ||
+				e.data == LocalSettings.LOCAL_SETTING_IFTTT_MDI_BASAL_DELETED_ON
 			)
 			{
 				getInitialProperties();
@@ -210,6 +253,27 @@ package services
 			isIFTTTnoteTreatmentDeletedEnabled = LocalSettings.getLocalSetting(LocalSettings.LOCAL_SETTING_IFTTT_NOTE_DELETED_ON) == "true";
 			isIFTTTiobUpdatedEnabled = LocalSettings.getLocalSetting(LocalSettings.LOCAL_SETTING_IFTTT_IOB_UPDATED_ON) == "true";
 			isIFTTTcobUpdatedEnabled = LocalSettings.getLocalSetting(LocalSettings.LOCAL_SETTING_IFTTT_COB_UPDATED_ON) == "true";
+			isIFTTTexerciseTreatmentAddedEnabled = LocalSettings.getLocalSetting(LocalSettings.LOCAL_SETTING_IFTTT_EXERCISE_ADDED_ON) == "true";
+			isIFTTTexerciseTreatmentUpdatedEnabled = LocalSettings.getLocalSetting(LocalSettings.LOCAL_SETTING_IFTTT_EXERCISE_UPDATED_ON) == "true";
+			isIFTTTexerciseTreatmentDeletedEnabled = LocalSettings.getLocalSetting(LocalSettings.LOCAL_SETTING_IFTTT_EXERCISE_DELETED_ON) == "true";
+			isIFTTTinsulinCartridgeTreatmentAddedEnabled = LocalSettings.getLocalSetting(LocalSettings.LOCAL_SETTING_IFTTT_INSULIN_CARTRIDGE_ADDED_ON) == "true";
+			isIFTTTinsulinCartridgeTreatmentUpdatedEnabled = LocalSettings.getLocalSetting(LocalSettings.LOCAL_SETTING_IFTTT_INSULIN_CARTRIDGE_UPDATED_ON) == "true";
+			isIFTTTinsulinCartridgeTreatmentDeletedEnabled = LocalSettings.getLocalSetting(LocalSettings.LOCAL_SETTING_IFTTT_INSULIN_CARTRIDGE_DELETED_ON) == "true";
+			isIFTTTpumpSiteTreatmentAddedEnabled = LocalSettings.getLocalSetting(LocalSettings.LOCAL_SETTING_IFTTT_PUMP_SITE_ADDED_ON) == "true";
+			isIFTTTpumpSiteTreatmentUpdatedEnabled = LocalSettings.getLocalSetting(LocalSettings.LOCAL_SETTING_IFTTT_PUMP_SITE_UPDATED_ON) == "true";
+			isIFTTTpumpSiteTreatmentDeletedEnabled = LocalSettings.getLocalSetting(LocalSettings.LOCAL_SETTING_IFTTT_PUMP_SITE_DELETED_ON) == "true";
+			isIFTTTpumpBatteryTreatmentAddedEnabled = LocalSettings.getLocalSetting(LocalSettings.LOCAL_SETTING_IFTTT_PUMP_BATTERY_ADDED_ON) == "true";
+			isIFTTTpumpBatteryTreatmentUpdatedEnabled = LocalSettings.getLocalSetting(LocalSettings.LOCAL_SETTING_IFTTT_PUMP_BATTERY_UPDATED_ON) == "true";
+			isIFTTTpumpBatteryTreatmentDeletedEnabled = LocalSettings.getLocalSetting(LocalSettings.LOCAL_SETTING_IFTTT_PUMP_BATTERY_DELETED_ON) == "true";
+			isIFTTTtempBasalStartAddedEnabled = LocalSettings.getLocalSetting(LocalSettings.LOCAL_SETTING_IFTTT_TEMP_BASAL_START_ADDED_ON) == "true";
+			isIFTTTtempBasalStartUpdatedEnabled = LocalSettings.getLocalSetting(LocalSettings.LOCAL_SETTING_IFTTT_TEMP_BASAL_START_UPDATED_ON) == "true";
+			isIFTTTtempBasalStartDeletedEnabled = LocalSettings.getLocalSetting(LocalSettings.LOCAL_SETTING_IFTTT_TEMP_BASAL_START_DELETED_ON) == "true";
+			isIFTTTtempBasalEndAddedEnabled = LocalSettings.getLocalSetting(LocalSettings.LOCAL_SETTING_IFTTT_TEMP_BASAL_END_ADDED_ON) == "true";
+			isIFTTTtempBasalEndUpdatedEnabled = LocalSettings.getLocalSetting(LocalSettings.LOCAL_SETTING_IFTTT_TEMP_BASAL_END_UPDATED_ON) == "true";
+			isIFTTTtempBasalEndDeletedEnabled = LocalSettings.getLocalSetting(LocalSettings.LOCAL_SETTING_IFTTT_TEMP_BASAL_END_DELETED_ON) == "true";
+			isIFTTTmdiBasalAddedEnabled = LocalSettings.getLocalSetting(LocalSettings.LOCAL_SETTING_IFTTT_MDI_BASAL_ADDED_ON) == "true";
+			isIFTTTmdiBasalUpdatedEnabled = LocalSettings.getLocalSetting(LocalSettings.LOCAL_SETTING_IFTTT_MDI_BASAL_UPDATED_ON) == "true";
+			isIFTTTmdiBasalDeletedEnabled = LocalSettings.getLocalSetting(LocalSettings.LOCAL_SETTING_IFTTT_MDI_BASAL_DELETED_ON) == "true";
 		}
 		
 		private static function configureService():void
@@ -318,11 +382,13 @@ package services
 			{
 				TransmitterService.instance.addEventListener(TransmitterServiceEvent.LAST_BGREADING_RECEIVED, onBgReading);
 				NightscoutService.instance.addEventListener(FollowerEvent.BG_READING_RECEIVED, onBgReading);
+				DexcomShareService.instance.addEventListener(FollowerEvent.BG_READING_RECEIVED, onBgReading);
 			}
 			else
 			{
 				TransmitterService.instance.removeEventListener(TransmitterServiceEvent.LAST_BGREADING_RECEIVED, onBgReading);
 				NightscoutService.instance.removeEventListener(FollowerEvent.BG_READING_RECEIVED, onBgReading);
+				DexcomShareService.instance.removeEventListener(FollowerEvent.BG_READING_RECEIVED, onBgReading);
 			}
 			
 			if (isIFTTTinteralServerErrorsEnabled && isIFTTTEnabled && makerKeyValue != "")
@@ -330,17 +396,17 @@ package services
 			else
 				HttpServer.instance.removeEventListener(HTTPServerEvent.SERVER_OFFLINE, onServerOffline);
 			
-			if ((isIFTTTbolusTreatmentAddedEnabled || isIFTTTcarbsTreatmentAddedEnabled || isIFTTTmealTreatmentAddedEnabled || isIFTTTbgCheckTreatmentAddedEnabled || isIFTTTnoteTreatmentAddedEnabled || isIFTTTiobUpdatedEnabled || isIFTTTcobUpdatedEnabled) && isIFTTTEnabled && makerKeyValue != "")
+			if ((isIFTTTbolusTreatmentAddedEnabled || isIFTTTcarbsTreatmentAddedEnabled || isIFTTTmealTreatmentAddedEnabled || isIFTTTbgCheckTreatmentAddedEnabled || isIFTTTnoteTreatmentAddedEnabled || isIFTTTexerciseTreatmentAddedEnabled || isIFTTTinsulinCartridgeTreatmentAddedEnabled || isIFTTTpumpSiteTreatmentAddedEnabled || isIFTTTpumpBatteryTreatmentAddedEnabled || isIFTTTiobUpdatedEnabled || isIFTTTcobUpdatedEnabled) && isIFTTTEnabled && makerKeyValue != "")
 				TreatmentsManager.instance.addEventListener(TreatmentsEvent.TREATMENT_ADDED, onTreatmentAdded);
 			else
 				TreatmentsManager.instance.removeEventListener(TreatmentsEvent.TREATMENT_ADDED, onTreatmentAdded);
 			
-			if ((isIFTTTbolusTreatmentDeletedEnabled || isIFTTTcarbsTreatmentDeletedEnabled || isIFTTTmealTreatmentDeletedEnabled || isIFTTTbgCheckTreatmentDeletedEnabled || isIFTTTnoteTreatmentDeletedEnabled || isIFTTTiobUpdatedEnabled || isIFTTTcobUpdatedEnabled) && isIFTTTEnabled && makerKeyValue != "")
+			if ((isIFTTTbolusTreatmentDeletedEnabled || isIFTTTcarbsTreatmentDeletedEnabled || isIFTTTmealTreatmentDeletedEnabled || isIFTTTbgCheckTreatmentDeletedEnabled || isIFTTTnoteTreatmentDeletedEnabled || isIFTTTexerciseTreatmentDeletedEnabled || isIFTTTinsulinCartridgeTreatmentDeletedEnabled || isIFTTTpumpSiteTreatmentDeletedEnabled || isIFTTTpumpBatteryTreatmentDeletedEnabled || isIFTTTiobUpdatedEnabled || isIFTTTcobUpdatedEnabled) && isIFTTTEnabled && makerKeyValue != "")
 				TreatmentsManager.instance.addEventListener(TreatmentsEvent.TREATMENT_DELETED, onTreatmentDeleted);
 			else
 				TreatmentsManager.instance.removeEventListener(TreatmentsEvent.TREATMENT_DELETED, onTreatmentDeleted);
 			
-			if ((isIFTTTbolusTreatmentUpdatedEnabled || isIFTTTcarbsTreatmentUpdatedEnabled || isIFTTTmealTreatmentUpdatedEnabled || isIFTTTbgCheckTreatmentUpdatedEnabled || isIFTTTnoteTreatmentUpdatedEnabled || isIFTTTiobUpdatedEnabled || isIFTTTcobUpdatedEnabled) && isIFTTTEnabled && makerKeyValue != "")
+			if ((isIFTTTbolusTreatmentUpdatedEnabled || isIFTTTcarbsTreatmentUpdatedEnabled || isIFTTTmealTreatmentUpdatedEnabled || isIFTTTbgCheckTreatmentUpdatedEnabled || isIFTTTnoteTreatmentUpdatedEnabled || isIFTTTexerciseTreatmentUpdatedEnabled || isIFTTTinsulinCartridgeTreatmentUpdatedEnabled || isIFTTTpumpSiteTreatmentUpdatedEnabled || isIFTTTpumpBatteryTreatmentUpdatedEnabled || isIFTTTiobUpdatedEnabled || isIFTTTcobUpdatedEnabled) && isIFTTTEnabled && makerKeyValue != "")
 				TreatmentsManager.instance.addEventListener(TreatmentsEvent.TREATMENT_UPDATED, onTreatmentUpdated);
 			else
 				TreatmentsManager.instance.removeEventListener(TreatmentsEvent.TREATMENT_UPDATED, onTreatmentUpdated);
@@ -349,6 +415,21 @@ package services
 				TreatmentsManager.instance.addEventListener(TreatmentsEvent.IOB_COB_UPDATED, onIOBCOBUpdated);
 			else
 				TreatmentsManager.instance.removeEventListener(TreatmentsEvent.IOB_COB_UPDATED, onIOBCOBUpdated);
+			
+			if ((isIFTTTtempBasalStartAddedEnabled || isIFTTTtempBasalEndAddedEnabled || isIFTTTmdiBasalAddedEnabled) && isIFTTTEnabled && makerKeyValue != "")
+				TreatmentsManager.instance.addEventListener(TreatmentsEvent.BASAL_TREATMENT_ADDED, onTreatmentAdded);
+			else
+				TreatmentsManager.instance.removeEventListener(TreatmentsEvent.BASAL_TREATMENT_ADDED, onTreatmentAdded);
+			
+			if ((isIFTTTtempBasalStartUpdatedEnabled || isIFTTTtempBasalEndUpdatedEnabled || isIFTTTmdiBasalUpdatedEnabled) && isIFTTTEnabled && makerKeyValue != "")
+				TreatmentsManager.instance.addEventListener(TreatmentsEvent.BASAL_TREATMENT_UPDATED, onTreatmentUpdated);
+			else
+				TreatmentsManager.instance.removeEventListener(TreatmentsEvent.BASAL_TREATMENT_UPDATED, onTreatmentUpdated);
+			
+			if ((isIFTTTtempBasalStartDeletedEnabled || isIFTTTtempBasalEndDeletedEnabled || isIFTTTmdiBasalDeletedEnabled) && isIFTTTEnabled && makerKeyValue != "")
+				TreatmentsManager.instance.addEventListener(TreatmentsEvent.BASAL_TREATMENT_DELETED, onTreatmentDeleted);
+			else
+				TreatmentsManager.instance.removeEventListener(TreatmentsEvent.BASAL_TREATMENT_DELETED, onTreatmentDeleted);
 		}
 		
 		private static function onTreatmentAdded(e:TreatmentsEvent):void
@@ -358,10 +439,19 @@ package services
 			(
 				(treatment.type == Treatment.TYPE_BOLUS && isIFTTTbolusTreatmentAddedEnabled) || 
 				(treatment.type == Treatment.TYPE_CORRECTION_BOLUS && isIFTTTbolusTreatmentAddedEnabled) || 
+				(treatment.type == Treatment.TYPE_EXTENDED_COMBO_BOLUS_PARENT && isIFTTTbolusTreatmentAddedEnabled) || 
 				(treatment.type == Treatment.TYPE_CARBS_CORRECTION && isIFTTTcarbsTreatmentAddedEnabled) ||
 				(treatment.type == Treatment.TYPE_GLUCOSE_CHECK && isIFTTTbgCheckTreatmentAddedEnabled) ||
 				(treatment.type == Treatment.TYPE_MEAL_BOLUS && isIFTTTmealTreatmentAddedEnabled) ||
-				(treatment.type == Treatment.TYPE_NOTE && isIFTTTnoteTreatmentAddedEnabled)
+				(treatment.type == Treatment.TYPE_EXTENDED_COMBO_MEAL_PARENT && isIFTTTmealTreatmentAddedEnabled) ||
+				(treatment.type == Treatment.TYPE_NOTE && isIFTTTnoteTreatmentAddedEnabled) ||
+				(treatment.type == Treatment.TYPE_EXERCISE && isIFTTTexerciseTreatmentAddedEnabled) ||
+				(treatment.type == Treatment.TYPE_INSULIN_CARTRIDGE_CHANGE && isIFTTTinsulinCartridgeTreatmentAddedEnabled) ||
+				(treatment.type == Treatment.TYPE_PUMP_SITE_CHANGE && isIFTTTpumpSiteTreatmentAddedEnabled) ||
+				(treatment.type == Treatment.TYPE_PUMP_BATTERY_CHANGE && isIFTTTpumpBatteryTreatmentAddedEnabled) ||
+				(treatment.type == Treatment.TYPE_TEMP_BASAL && isIFTTTtempBasalStartAddedEnabled) ||
+				(treatment.type == Treatment.TYPE_TEMP_BASAL_END && isIFTTTtempBasalEndAddedEnabled) ||
+				(treatment.type == Treatment.TYPE_MDI_BASAL && isIFTTTmdiBasalAddedEnabled)
 			)
 				triggerTreatment(treatment, "added");
 			
@@ -380,10 +470,19 @@ package services
 			(
 				(treatment.type == Treatment.TYPE_BOLUS && isIFTTTbolusTreatmentDeletedEnabled) || 
 				(treatment.type == Treatment.TYPE_CORRECTION_BOLUS && isIFTTTbolusTreatmentDeletedEnabled) || 
+				(treatment.type == Treatment.TYPE_EXTENDED_COMBO_BOLUS_PARENT && isIFTTTbolusTreatmentDeletedEnabled) || 
 				(treatment.type == Treatment.TYPE_CARBS_CORRECTION && isIFTTTcarbsTreatmentDeletedEnabled) ||
 				(treatment.type == Treatment.TYPE_GLUCOSE_CHECK && isIFTTTbgCheckTreatmentDeletedEnabled) ||
 				(treatment.type == Treatment.TYPE_MEAL_BOLUS && isIFTTTmealTreatmentDeletedEnabled) ||
-				(treatment.type == Treatment.TYPE_NOTE && isIFTTTnoteTreatmentDeletedEnabled)
+				(treatment.type == Treatment.TYPE_EXTENDED_COMBO_MEAL_PARENT && isIFTTTmealTreatmentDeletedEnabled) ||
+				(treatment.type == Treatment.TYPE_NOTE && isIFTTTnoteTreatmentDeletedEnabled) ||
+				(treatment.type == Treatment.TYPE_EXERCISE && isIFTTTexerciseTreatmentDeletedEnabled) ||
+				(treatment.type == Treatment.TYPE_INSULIN_CARTRIDGE_CHANGE && isIFTTTinsulinCartridgeTreatmentDeletedEnabled) ||
+				(treatment.type == Treatment.TYPE_PUMP_SITE_CHANGE && isIFTTTpumpSiteTreatmentDeletedEnabled) ||
+				(treatment.type == Treatment.TYPE_PUMP_BATTERY_CHANGE && isIFTTTpumpBatteryTreatmentDeletedEnabled) ||
+				(treatment.type == Treatment.TYPE_TEMP_BASAL && isIFTTTtempBasalStartDeletedEnabled) ||
+				(treatment.type == Treatment.TYPE_TEMP_BASAL_END && isIFTTTtempBasalEndDeletedEnabled) ||
+				(treatment.type == Treatment.TYPE_MDI_BASAL && isIFTTTmdiBasalDeletedEnabled)
 			)
 				triggerTreatment(treatment, "deleted");
 			
@@ -402,10 +501,19 @@ package services
 			(
 				(treatment.type == Treatment.TYPE_BOLUS && isIFTTTbolusTreatmentUpdatedEnabled) || 
 				(treatment.type == Treatment.TYPE_CORRECTION_BOLUS && isIFTTTbolusTreatmentUpdatedEnabled) || 
+				(treatment.type == Treatment.TYPE_EXTENDED_COMBO_BOLUS_PARENT && isIFTTTbolusTreatmentUpdatedEnabled) || 
 				(treatment.type == Treatment.TYPE_CARBS_CORRECTION && isIFTTTcarbsTreatmentUpdatedEnabled) ||
 				(treatment.type == Treatment.TYPE_GLUCOSE_CHECK && isIFTTTbgCheckTreatmentUpdatedEnabled) ||
 				(treatment.type == Treatment.TYPE_MEAL_BOLUS && isIFTTTmealTreatmentUpdatedEnabled) ||
-				(treatment.type == Treatment.TYPE_NOTE && isIFTTTnoteTreatmentUpdatedEnabled)
+				(treatment.type == Treatment.TYPE_EXTENDED_COMBO_MEAL_PARENT && isIFTTTmealTreatmentUpdatedEnabled) ||
+				(treatment.type == Treatment.TYPE_NOTE && isIFTTTnoteTreatmentUpdatedEnabled) ||
+				(treatment.type == Treatment.TYPE_EXERCISE && isIFTTTexerciseTreatmentUpdatedEnabled) ||
+				(treatment.type == Treatment.TYPE_INSULIN_CARTRIDGE_CHANGE && isIFTTTinsulinCartridgeTreatmentUpdatedEnabled) ||
+				(treatment.type == Treatment.TYPE_PUMP_SITE_CHANGE && isIFTTTpumpSiteTreatmentUpdatedEnabled) ||
+				(treatment.type == Treatment.TYPE_PUMP_BATTERY_CHANGE && isIFTTTpumpBatteryTreatmentUpdatedEnabled) ||
+				(treatment.type == Treatment.TYPE_TEMP_BASAL && isIFTTTtempBasalStartUpdatedEnabled) ||
+				(treatment.type == Treatment.TYPE_TEMP_BASAL_END && isIFTTTtempBasalEndUpdatedEnabled) ||
+				(treatment.type == Treatment.TYPE_MDI_BASAL && isIFTTTmdiBasalUpdatedEnabled)
 			)
 				triggerTreatment(treatment, "updated");
 			
@@ -435,6 +543,11 @@ package services
 				treatmentType = ModelLocator.resourceManagerInstance.getString("treatments","treatment_name_bolus");
 				treatmentValue = GlucoseFactory.formatIOB(treatment.insulinAmount);
 			}
+			else if (treatment.type == Treatment.TYPE_EXTENDED_COMBO_BOLUS_PARENT)
+			{
+				treatmentType = ModelLocator.resourceManagerInstance.getString("treatments","extended_bolus_treatment");
+				treatmentValue = GlucoseFactory.formatIOB(treatment.getTotalInsulin());
+			} 
 			else if (treatment.type == Treatment.TYPE_CARBS_CORRECTION)
 			{
 				treatmentType = ModelLocator.resourceManagerInstance.getString("treatments","treatment_name_carbs");
@@ -453,10 +566,63 @@ package services
 				treatmentType = ModelLocator.resourceManagerInstance.getString("treatments","treatment_name_meal");
 				treatmentValue = ModelLocator.resourceManagerInstance.getString("treatments","treatment_insulin_label") + ": " + GlucoseFactory.formatIOB(treatment.insulinAmount) + ", " + ModelLocator.resourceManagerInstance.getString("treatments","treatment_name_carbs") + ": " + GlucoseFactory.formatCOB(treatment.carbs);
 			}
+			else if (treatment.type == Treatment.TYPE_EXTENDED_COMBO_MEAL_PARENT)
+			{
+				treatmentType = ModelLocator.resourceManagerInstance.getString("treatments","meal_with_extended_bolus");
+				treatmentValue = ModelLocator.resourceManagerInstance.getString("treatments","treatment_insulin_label") + ": " + GlucoseFactory.formatIOB(treatment.getTotalInsulin()) + ", " + ModelLocator.resourceManagerInstance.getString("treatments","treatment_name_carbs") + ": " + GlucoseFactory.formatCOB(treatment.carbs);
+			}
 			else if (treatment.type == Treatment.TYPE_NOTE)
 			{
 				treatmentType = ModelLocator.resourceManagerInstance.getString("treatments","treatment_name_note");
 				treatmentValue = treatment.note;
+			}
+			else if (treatment.type == Treatment.TYPE_EXERCISE)
+			{
+				treatmentType = ModelLocator.resourceManagerInstance.getString("treatments","treatment_name_exercise");
+				treatmentValue = ModelLocator.resourceManagerInstance.getString("treatments","exercise_duration_label") + ": " + treatment.duration + ModelLocator.resourceManagerInstance.getString("treatments","minutes_small_label") + ", " + ModelLocator.resourceManagerInstance.getString("treatments","exercise_intensity_label") + ": " + TreatmentsManager.getExerciseTreatmentIntensity(treatment);
+			}
+			else if (treatment.type == Treatment.TYPE_INSULIN_CARTRIDGE_CHANGE)
+			{
+				treatmentType = ModelLocator.resourceManagerInstance.getString("treatments","treatment_name_insulin_cartridge_change");
+				treatmentValue = treatment.note;
+			}
+			else if (treatment.type == Treatment.TYPE_PUMP_SITE_CHANGE)
+			{
+				treatmentType = ModelLocator.resourceManagerInstance.getString("treatments","treatment_name_pump_site_change");
+				treatmentValue = treatment.note;
+			}
+			else if (treatment.type == Treatment.TYPE_PUMP_BATTERY_CHANGE)
+			{
+				treatmentType = ModelLocator.resourceManagerInstance.getString("treatments","treatment_name_pump_battery_change");
+				treatmentValue = treatment.note;
+			}
+			else if (treatment.type == Treatment.TYPE_MDI_BASAL)
+			{
+				treatmentType = ModelLocator.resourceManagerInstance.getString("treatments","treatment_name_basal");
+				treatmentValue = GlucoseFactory.formatIOB(treatment.basalAbsoluteAmount);
+			}
+			else if (treatment.type == Treatment.TYPE_TEMP_BASAL_END)
+			{
+				treatmentType = ModelLocator.resourceManagerInstance.getString("treatments","treatment_name_temp_basal_end");
+				treatmentValue = GlucoseFactory.formatIOB(0);
+			}
+			else if (treatment.type == Treatment.TYPE_TEMP_BASAL)
+			{
+				treatmentType = treatment.isTempBasalEnd ? ModelLocator.resourceManagerInstance.getString("treatments","treatment_name_temp_basal_end") : ModelLocator.resourceManagerInstance.getString("treatments","treatment_name_temp_basal_start");
+				
+				if (treatment.isTempBasalEnd)
+				{
+					treatmentValue = GlucoseFactory.formatIOB(0);
+				}
+				else if (treatment.isBasalAbsolute)
+				{
+					treatmentValue = GlucoseFactory.formatIOB(treatment.basalAbsoluteAmount);
+				}
+				else if (treatment.isBasalRelative)
+				{
+					var currentBasalRate:Number = ProfileManager.getBasalRateByTime(treatment.timestamp);
+					treatmentValue = GlucoseFactory.formatIOB(currentBasalRate * (100 + treatment.basalPercentAmount) / 100);
+				}
 			}
 			
 			//JSON Object
@@ -466,12 +632,24 @@ package services
 			info.value3 = treatmentTime;
 			
 			var triggerName:String;
-			if (mode == "added")
-				triggerName = "spike-treatment-added";
-			else if (mode == "deleted")
-				triggerName = "spike-treatment-deleted";
-			else if (mode == "updated")
-				triggerName = "spike-treatment-updated";
+			if (treatment.type == Treatment.TYPE_TEMP_BASAL || treatment.type == Treatment.TYPE_TEMP_BASAL_END || treatment.type == Treatment.TYPE_MDI_BASAL)
+			{
+				if (mode == "added")
+					triggerName = "spike-basal-added";
+				else if (mode == "deleted")
+					triggerName = "spike-basal-deleted";
+				else if (mode == "updated")
+					triggerName = "spike-basal-updated";
+			}
+			else
+			{
+				if (mode == "added")
+					triggerName = "spike-treatment-added";
+				else if (mode == "deleted")
+					triggerName = "spike-treatment-deleted";
+				else if (mode == "updated")
+					triggerName = "spike-treatment-updated";
+			}
 			
 			for (var i:int = 0; i < makerKeyList.length; i++) 
 			{
@@ -575,8 +753,42 @@ package services
 						for (i = 0; i < makerKeyList.length; i++) 
 						{
 							key = makerKeyList[i] as String;
-							//NetworkConnector.createIFTTTConnector(IFTTT_URL.replace("{trigger}", "spike-bgreading").replace("{key}", key), URLRequestMethod.POST, JSON.stringify(info));
 							NetworkConnector.createIFTTTConnector(IFTTT_URL.replace("{trigger}", "spike-bgreading").replace("{key}", key), URLRequestMethod.POST, SpikeJSON.stringify(info));
+						}
+						
+						if (LocalSettings.getLocalSetting(LocalSettings.LOCAL_SETTING_IFTTT_DIVIDE_BG_EVENTS_BY_THRESHOLD_ON) == "true" && !isNaN(lastReading.calculatedValue))
+						{
+							var trigger:String = "";
+							
+							if (lastReading.calculatedValue >= Number(CommonSettings.getCommonSetting(CommonSettings.COMMON_SETTING_URGENT_HIGH_MARK)))
+							{
+								trigger = "spike-bgreading-urgent-high";
+							}
+							else if (lastReading.calculatedValue >= Number(CommonSettings.getCommonSetting(CommonSettings.COMMON_SETTING_HIGH_MARK)))
+							{
+								trigger = "spike-bgreading-high";
+							}
+							else if (lastReading.calculatedValue > Number(CommonSettings.getCommonSetting(CommonSettings.COMMON_SETTING_LOW_MARK)) && lastReading.calculatedValue < Number(CommonSettings.getCommonSetting(CommonSettings.COMMON_SETTING_HIGH_MARK)))
+							{
+								trigger = "spike-bgreading-in-range";
+							}
+							else if (lastReading.calculatedValue <= Number(CommonSettings.getCommonSetting(CommonSettings.COMMON_SETTING_LOW_MARK)) && lastReading.calculatedValue > Number(CommonSettings.getCommonSetting(CommonSettings.COMMON_SETTING_URGENT_LOW_MARK)))
+							{
+								trigger = "spike-bgreading-low";
+							}
+							else if (lastReading.calculatedValue <= Number(CommonSettings.getCommonSetting(CommonSettings.COMMON_SETTING_URGENT_LOW_MARK)))
+							{
+								trigger = "spike-bgreading-urgent-low";
+							}
+							
+							if (trigger != "")
+							{
+								for (i = 0; i < makerKeyList.length; i++) 
+								{
+									key = makerKeyList[i] as String;
+									NetworkConnector.createIFTTTConnector(IFTTT_URL.replace("{trigger}", trigger).replace("{key}", key), URLRequestMethod.POST, SpikeJSON.stringify(info));
+								}
+							}
 						}
 					}
 					
@@ -972,6 +1184,7 @@ package services
 			AlarmService.instance.removeEventListener(AlarmServiceEvent.TRANSMITTER_LOW_BATTERY_SNOOZED, onTransmitterLowBatterySnoozed);
 			TransmitterService.instance.removeEventListener(TransmitterServiceEvent.LAST_BGREADING_RECEIVED, onBgReading);
 			NightscoutService.instance.removeEventListener(FollowerEvent.BG_READING_RECEIVED, onBgReading);
+			DexcomShareService.instance.removeEventListener(FollowerEvent.BG_READING_RECEIVED, onBgReading);
 			HttpServer.instance.removeEventListener(HTTPServerEvent.SERVER_OFFLINE, onServerOffline);
 			TreatmentsManager.instance.removeEventListener(TreatmentsEvent.TREATMENT_ADDED, onTreatmentAdded);
 			TreatmentsManager.instance.removeEventListener(TreatmentsEvent.TREATMENT_DELETED, onTreatmentDeleted);

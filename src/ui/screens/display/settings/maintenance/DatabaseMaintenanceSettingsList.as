@@ -5,8 +5,11 @@ package ui.screens.display.settings.maintenance
 	
 	import flash.display.StageOrientation;
 	import flash.filesystem.File;
+	import flash.filesystem.FileMode;
+	import flash.filesystem.FileStream;
 	import flash.text.engine.LineJustification;
 	import flash.text.engine.SpaceJustifier;
+	import flash.utils.ByteArray;
 	
 	import spark.formatters.DateTimeFormatter;
 	
@@ -37,11 +40,14 @@ package ui.screens.display.settings.maintenance
 	
 	import model.ModelLocator;
 	
+	import org.aszip.compression.CompressionMethod;
+	import org.aszip.saving.Method;
+	import org.aszip.zip.ASZip;
+	
 	import services.ICloudService;
 	
 	import starling.events.Event;
 	import starling.events.ResizeEvent;
-	import starling.text.TrueTypeCompositor;
 	
 	import ui.popups.AlertManager;
 	import ui.popups.EmailFileSender;
@@ -136,6 +142,7 @@ package ui.screens.display.settings.maintenance
 			backupScheduler = LayoutFactory.createPickerList();
 			var backupSchedulerDataProvider:ArrayCollection = new ArrayCollection();
 			backupSchedulerDataProvider.push( { label: ModelLocator.resourceManagerInstance.getString('maintenancesettingsscreen','no_automatic_backup_label'), timespan: 0 } );
+			backupSchedulerDataProvider.push( { label: ModelLocator.resourceManagerInstance.getString('maintenancesettingsscreen','twice_daily_backup_label'), timespan: 0.5 * TimeSpan.TIME_24_HOURS } );
 			backupSchedulerDataProvider.push( { label: ModelLocator.resourceManagerInstance.getString('maintenancesettingsscreen','daily_backup_label'), timespan: TimeSpan.TIME_24_HOURS } );
 			backupSchedulerDataProvider.push( { label: ModelLocator.resourceManagerInstance.getString('maintenancesettingsscreen','weekly_backup_label'), timespan: 7 * TimeSpan.TIME_24_HOURS } );
 			backupSchedulerDataProvider.push( { label: ModelLocator.resourceManagerInstance.getString('maintenancesettingsscreen','monthly_backup_label'), timespan: 30 * TimeSpan.TIME_24_HOURS } );
@@ -239,15 +246,48 @@ package ui.screens.display.settings.maintenance
 			if(emailDatabaseButton != null)
 				emailDatabaseButton.isEnabled = false;
 			
+			var fileToSend:*;
+			var fileName:String;
+			var mimeType:String;
+			
+			var db:File = File.documentsDirectory.resolvePath("spike.db");
+			//If database is bigger than 14mb, zip it efore sending it.
+			if (db.size > 14000000)
+			{
+				//Create Stream
+				var fileStream:FileStream = new FileStream();
+				fileStream.open(db, FileMode.READ);
+				
+				//Read trace log raw bytes into memory
+				var dbBytes:ByteArray = new ByteArray();
+				fileStream.readBytes(dbBytes);
+				fileStream.close();
+				
+				//Compress
+				var zip:ASZip = new ASZip(CompressionMethod.GZIP);
+				zip.addFile(dbBytes, "spike.db");
+				var myZipFile:ByteArray = zip.saveZIP( Method.LOCAL );
+				
+				fileToSend = myZipFile;
+				fileName = "spike.zip";
+				mimeType = "application/zip";
+			}
+			else
+			{
+				fileToSend = db;
+				fileName = "spike.db";
+				mimeType = "application/x-sqlite3";
+			}
+			
 			EmailFileSender.instance.addEventListener(Event.COMPLETE, onFileSenderClosed);
 			EmailFileSender.instance.addEventListener(Event.CANCEL, onFileSenderClosed);
 			EmailFileSender.sendFile
 			(
 				ModelLocator.resourceManagerInstance.getString('maintenancesettingsscreen','database_email_subject'),
 				ModelLocator.resourceManagerInstance.getString('maintenancesettingsscreen','database_email_body'),
-				"spike.db",
-				File.applicationStorageDirectory.resolvePath("spike.db"),
-				"application/x-sqlite3",
+				fileName,
+				fileToSend,
+				mimeType,
 				ModelLocator.resourceManagerInstance.getString('maintenancesettingsscreen','database_email_success_message'),
 				ModelLocator.resourceManagerInstance.getString('maintenancesettingsscreen','database_email_error_message'),
 				ModelLocator.resourceManagerInstance.getString('maintenancesettingsscreen','missing_local_database_label')

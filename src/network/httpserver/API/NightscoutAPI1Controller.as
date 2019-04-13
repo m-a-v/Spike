@@ -1,5 +1,7 @@
 package network.httpserver.API
 {
+	import com.adobe.utils.DateUtil;
+	
 	import flash.net.URLVariables;
 	
 	import mx.utils.ObjectUtil;
@@ -18,12 +20,12 @@ package network.httpserver.API
 	
 	import services.AlarmService;
 	
+	import treatments.BasalRate;
+	import treatments.Insulin;
 	import treatments.Profile;
 	import treatments.ProfileManager;
 	import treatments.Treatment;
 	import treatments.TreatmentsManager;
-	
-	import ui.screens.display.settings.treatments.TreatmentManagerAccessory;
 	
 	import utils.SpikeJSON;
 	import utils.TimeSpan;
@@ -467,6 +469,8 @@ package network.httpserver.API
 		
 		public function profile(params:URLVariables):String
 		{
+			var i:int;
+			
 			var upperProfileObject:Object = {};
 			upperProfileObject["_id"] = UniqueId.createEventId();
 			upperProfileObject.defaultProfile = "SpikeProfile";
@@ -477,14 +481,20 @@ package network.httpserver.API
 			
 			var upperSpikeProfile:Object = {};
 			var spikeProfile:Object = {};
-			spikeProfile.dia = ProfileManager.getInsulin(ProfileManager.getDefaultInsulinID()).dia;
+			var defaultInsulinID:String = ProfileManager.getDefaultInsulinID();
+			var defaultInsulin:Insulin;
+			if (defaultInsulinID != "")
+			{
+				ProfileManager.getInsulin(defaultInsulinID)
+			}
+			spikeProfile.dia = defaultInsulin != null ? defaultInsulin.dia : 3;
 			spikeProfile.carbratio = [];
 			spikeProfile.sens = [];
 			spikeProfile["target_low"] = [];
 			spikeProfile["target_high"] = [];
 			
 			var userProfiles:Array = ProfileManager.profilesList;
-			for (var i:int = 0; i < userProfiles.length; i++) 
+			for (i = 0; i < userProfiles.length; i++) 
 			{
 				var profile:Profile = userProfiles[i];
 				if (profile != null && profile.time != "" && profile.insulinSensitivityFactors != "" && profile.insulinToCarbRatios != "" && profile.targetGlucoseRates != "")
@@ -513,7 +523,24 @@ package network.httpserver.API
 			spikeProfile["carbs_hr"] = String(ProfileManager.getCarbAbsorptionRate());
 			spikeProfile.delay = "20";
 			spikeProfile.timezone = "Europe/Lisbon";
-			spikeProfile.basal = [ { time: "00:00", value: "0.5", timeAsSeconds: "0" } ];
+			
+			var basalRates:Array = [];
+			ProfileManager.basalRatesList.sortOn(["startTime"], Array.CASEINSENSITIVE);
+			for (i = 0; i < ProfileManager.basalRatesList.length; i++) 
+			{
+				var basalRate:BasalRate = ProfileManager.basalRatesList[i];
+				if (basalRate != null)
+				{
+					var br:Object = {};
+					br.time = basalRate.startTime;
+					br.value = String(basalRate.basalRate);
+					br.timeAsSeconds = (basalRate.startHours * 60 * 60) + (basalRate.startMinutes * 60);
+					
+					basalRates.push(br);
+				}
+			}
+			
+			spikeProfile.basal = basalRates;
 			spikeProfile.startDate = nsFormatter.format(0);
 			spikeProfile.units = CommonSettings.getCommonSetting(CommonSettings.COMMON_SETTING_DO_MGDL) == "true" ? "mg/dl" : "mmol";
 			
@@ -559,6 +586,13 @@ package network.httpserver.API
 				var treatmentCarbs:Number = 0;
 				var treatmentGlucose:Number = 0;
 				var treatmentNote:String = "";
+				var treatmentDuration:Number = 0;
+				var treatmentExerciseIntensity:String = Treatment.EXERCISE_INTENSITY_MODERATE;
+				var basalAmount:Number = 0;
+				var basalDuration:Number = 30;
+				var isBasalAbsolute:Boolean = false;
+				var isBasalRelative:Boolean = false;
+				var isTempBasalEnd:Boolean = false;
 				
 				if (treatmentEventType == "Correction Bolus" || treatmentEventType == "Bolus" || treatmentEventType == "Correction")
 				{
@@ -612,6 +646,61 @@ package network.httpserver.API
 					treatmentType = Treatment.TYPE_GLUCOSE_CHECK;
 					treatmentGlucose = Number(params.glucose);
 				}
+				else if (treatmentEventType == "Insulin Change")
+				{
+					treatmentType = Treatment.TYPE_INSULIN_CARTRIDGE_CHANGE;
+				}
+				else if (treatmentEventType == "Pump Battery Change")
+				{
+					treatmentType = Treatment.TYPE_PUMP_BATTERY_CHANGE;
+				}
+				else if (treatmentEventType == "Site Change")
+				{
+					treatmentType = Treatment.TYPE_PUMP_SITE_CHANGE;
+				}
+				else if (treatmentEventType == "Exercise")
+				{
+					treatmentType = Treatment.TYPE_EXERCISE;
+					
+					if (params.duration != null)
+						treatmentDuration = Number(params.duration);
+					
+					if (params.exerciseIntensity != null)
+						treatmentExerciseIntensity= String(params.exerciseIntensity);
+				}
+				else if (treatmentEventType == "Temp Basal")
+				{
+					if (CommonSettings.getCommonSetting(CommonSettings.COMMON_SETTING_USER_TYPE_PUMP_OR_MDI) == "pump")
+					{
+						treatmentType = Treatment.TYPE_TEMP_BASAL;
+					}
+					else if (CommonSettings.getCommonSetting(CommonSettings.COMMON_SETTING_USER_TYPE_PUMP_OR_MDI) == "mdi")
+					{
+						treatmentType = Treatment.TYPE_MDI_BASAL;
+					}
+					
+					if (params.duration != null)
+						basalDuration = Number(params.duration);
+					
+					if (params.absolute != null)
+					{
+						basalAmount = Number(params.absolute);
+						isBasalAbsolute = true;
+						isBasalRelative = false;
+					}
+					else if (params.percent != null)
+					{
+						basalAmount = Number(params.percent);
+						isBasalRelative = true;
+						isBasalAbsolute = false;
+					}
+					
+					if (!isBasalAbsolute && !isBasalRelative)
+					{
+						isTempBasalEnd = true;
+					}
+				}
+				
 				
 				if (params.notes != null)
 					treatmentNote = params.notes;
@@ -632,8 +721,44 @@ package network.httpserver.API
 						treatmentNote
 					);
 					
+					if (treatmentType == Treatment.TYPE_EXERCISE)
+					{
+						treatment.duration = treatmentDuration;
+						treatment.exerciseIntensity = treatmentExerciseIntensity;
+					}
+					
+					if (treatmentType == Treatment.TYPE_MDI_BASAL || treatmentType == Treatment.TYPE_TEMP_BASAL)
+					{
+						if (isBasalAbsolute)
+						{
+							treatment.basalAbsoluteAmount = basalAmount;
+						}
+						else if (isBasalRelative)
+						{
+							treatment.basalPercentAmount = basalAmount;
+						}
+						
+						treatment.basalDuration = basalDuration;
+						treatment.isBasalAbsolute = isBasalAbsolute;
+						treatment.isBasalRelative = isBasalRelative;
+						treatment.isTempBasalEnd = isTempBasalEnd;
+					}
+					
+					if (treatmentType == Treatment.TYPE_INSULIN_CARTRIDGE_CHANGE)
+					{
+						CommonSettings.setCommonSetting(CommonSettings.COMMON_SETTING_LAST_INSULIN_CARTRIDGE_CHANGE, String(treatmentTimestamp), true, false);
+					}
+					else if (treatmentType == Treatment.TYPE_PUMP_BATTERY_CHANGE)
+					{
+						CommonSettings.setCommonSetting(CommonSettings.COMMON_SETTING_LAST_PUMP_BATTERY_CHANGE, String(treatmentTimestamp), true, false);
+					}
+					else if (treatmentType == Treatment.TYPE_PUMP_SITE_CHANGE)
+					{
+						CommonSettings.setCommonSetting(CommonSettings.COMMON_SETTING_LAST_PUMP_SITE_CHANGE, String(treatmentTimestamp), true, false);
+					}
+					
 					//Add treatment to Spike and Databse
-					TreatmentsManager.addNightscoutTreatment(treatment, true);
+					TreatmentsManager.addInternalTreatment(treatment, true);
 					
 					//Format response
 					var responseArray:Array = [];
@@ -645,24 +770,70 @@ package network.httpserver.API
 					responseObject.carbs = treatmentCarbs;
 					responseObject.glucose = treatmentGlucose;
 					responseObject.notes = treatmentNote;
+					if (treatmentType == Treatment.TYPE_EXERCISE)
+					{
+						responseObject.duration = treatmentDuration;
+						responseObject.exerciseIntensity = treatmentExerciseIntensity;
+					}
+					if (treatmentType == Treatment.TYPE_MDI_BASAL || treatmentType == Treatment.TYPE_TEMP_BASAL)
+					{
+						if (isBasalAbsolute)
+						{
+							responseObject.absolute = basalAmount;
+						}
+						else if (isBasalRelative)
+						{
+							responseObject.percent = basalAmount;
+						}
+						responseObject.duration = basalDuration;
+					}
 					responseArray.push(responseObject);
 					response = SpikeJSON.stringify(responseArray);
 				}
 			}
 			else if (params.method == "GET") //Return treatments. Useful for Spike to Spike follower mode
 			{
-				//TODO: ACCEPT PARAMETERS. RIGHT NOW IT RETURNS ALL TREATMENTS IN MEMORY (24H)
-				
 				if (CommonSettings.getCommonSetting(CommonSettings.COMMON_SETTING_TREATMENTS_ENABLED) != "true")
 					return responseSuccess("[]");
 				
+				var excludedTreatmentsList:Object = {};
+				var excludedTreatmentsExist:Boolean = false;
+				var includedTreatmentsList:Object = {};
+				var includedTreatmentsExist:Boolean = false;
+				
+				for (var prop:String in params) 
+				{ 
+					if (prop.indexOf("[$nin]") != -1)
+					{
+						excludedTreatmentsList[params[prop]] = true;
+						excludedTreatmentsExist = true;
+					}
+					
+					if (prop.indexOf("[$in]") != -1)
+					{
+						includedTreatmentsList[params[prop]] = true;
+						includedTreatmentsExist = true;
+					}
+				}
+				
+				var firstTreatmentTimestamp:Number = new Date().valueOf() - TimeSpan.TIME_24_HOURS;
+				if (params["find[created_at][$gte]"] != null)
+				{
+					firstTreatmentTimestamp = DateUtil.parseW3CDTF(params["find[created_at][$gte]"]).valueOf();
+				}
+				
+				//Common Variables
+				var i:int;
 				var treatmentsList:Array = [];
+				
+				//Treatments
 				var spikeTreatmentsList:Array = TreatmentsManager.treatmentsList.concat();
 				spikeTreatmentsList.sortOn(["timestamp"], Array.NUMERIC | Array.DESCENDING);
-				for (var i:int = 0; i < spikeTreatmentsList.length; i++) 
+				
+				for (i = 0; i < spikeTreatmentsList.length; i++) 
 				{
 					var spikeTreatment:Treatment = spikeTreatmentsList[i] as Treatment;
-					if (spikeTreatment != null)
+					if (spikeTreatment != null && spikeTreatment.timestamp >= firstTreatmentTimestamp)
 					{
 						var responseTreatmentType:String;
 						if (spikeTreatment.type == Treatment.TYPE_BOLUS)
@@ -679,23 +850,86 @@ package network.httpserver.API
 							responseTreatmentType = "Note";
 						else if (spikeTreatment.type == Treatment.TYPE_SENSOR_START)
 							responseTreatmentType = "Sensor Start";
+						else if (spikeTreatment.type == Treatment.TYPE_EXTENDED_COMBO_BOLUS_PARENT || spikeTreatment.type == Treatment.TYPE_EXTENDED_COMBO_MEAL_PARENT)
+							responseTreatmentType = "Combo Bolus";
+						else if (spikeTreatment.type == Treatment.TYPE_EXERCISE)
+							responseTreatmentType = "Exercise";
+						else if (spikeTreatment.type == Treatment.TYPE_INSULIN_CARTRIDGE_CHANGE)
+							responseTreatmentType = "Insulin Change";
+						else if (spikeTreatment.type == Treatment.TYPE_PUMP_BATTERY_CHANGE)
+							responseTreatmentType = "Pump Battery Change";
+						else if (spikeTreatment.type == Treatment.TYPE_PUMP_SITE_CHANGE)
+							responseTreatmentType = "Site Change";
+						
+						if (excludedTreatmentsExist && excludedTreatmentsList[responseTreatmentType] != null)
+						{
+							continue;
+						}
+						
+						if (includedTreatmentsExist && includedTreatmentsList[responseTreatmentType] == null)
+						{
+							continue;
+						}
 						
 						var responseTreatment:Object = {};
 						responseTreatment["_id"] = spikeTreatment.ID;
 						responseTreatment["created_at"] = nsFormatter.format(spikeTreatment.timestamp).replace("000+0000", "000Z");
 						responseTreatment.eventType = responseTreatmentType;
-						if (responseTreatmentType == "Bolus" || responseTreatmentType == "Correction Bolus" || responseTreatmentType == "Meal Bolus")
+						
+						if (responseTreatmentType == "Bolus" || responseTreatmentType == "Correction Bolus" || responseTreatmentType == "Meal Bolus" || (responseTreatmentType == "Combo Bolus" && spikeTreatment.insulinAmount > 0))
 						{
 							responseTreatment.insulin = spikeTreatment.insulinAmount;
 							responseTreatment.insulinID = spikeTreatment.insulinID;
-							responseTreatment.insulinName = ProfileManager.getInsulin(spikeTreatment.insulinID).name;
 							responseTreatment.dia = spikeTreatment.dia;
+							
+							var treatmentInsulin:Insulin = ProfileManager.getInsulin(spikeTreatment.insulinID);
+							if (treatmentInsulin != null)
+							{
+								responseTreatment.insulinName = treatmentInsulin.name;
+								responseTreatment.insulinType = treatmentInsulin.type;
+								responseTreatment.insulinPeak = treatmentInsulin.peak;
+								responseTreatment.insulinCurve = treatmentInsulin.curve;
+							}
 						}
-						if (responseTreatmentType == "Meal Bolus" || responseTreatmentType == "Carb Correction")
+						
+						if (responseTreatmentType == "Meal Bolus" || responseTreatmentType == "Carb Correction" || (responseTreatmentType == "Combo Bolus" && spikeTreatment.carbs > 0))
 						{
 							responseTreatment.carbs = spikeTreatment.carbs;
 							responseTreatment.carbDelayTime = spikeTreatment.carbDelayTime;
 						}
+						
+						if (responseTreatmentType == "Combo Bolus")
+						{
+							var parentInsulin:Number = Math.round(spikeTreatment.insulinAmount * 100) / 100;
+							var totalInsulin:Number = Math.round(spikeTreatment.getTotalInsulin() * 100) / 100;
+							var childrenInsulin:Number = Math.round((totalInsulin - parentInsulin) * 100) / 100;
+							var parentSplit:Number = Math.round((parentInsulin * 100) / totalInsulin);
+							var childrenSplit:Number = 100 - parentSplit;
+							
+							responseTreatment.enteredinsulin = String(totalInsulin);
+							responseTreatment.duration = spikeTreatment.childTreatments.length * 5;
+							responseTreatment.splitNow = String(parentSplit);
+							responseTreatment.splitExt = String(childrenSplit);
+							responseTreatment.relative = totalInsulin - parentInsulin;
+							
+							if (!isNaN(treatment.preBolus))
+							{
+								responseTreatment.preBolus = spikeTreatment.preBolus;
+							}
+						}
+						
+						if (responseTreatmentType == "BG Check")
+						{
+							responseTreatment.glucoseType = "Finger";
+						}
+						
+						if (responseTreatmentType == "Exercise")
+						{
+							responseTreatment.duration = spikeTreatment.duration;
+							responseTreatment.exerciseIntensity = spikeTreatment.exerciseIntensity;
+						}
+						
+						responseTreatment.date = spikeTreatment.timestamp;
 						responseTreatment.glucose = spikeTreatment.glucose;
 						responseTreatment.notes = spikeTreatment.note;
 						
@@ -703,6 +937,44 @@ package network.httpserver.API
 					}
 				}
 				
+				//Basals
+				if ((!excludedTreatmentsExist && !includedTreatmentsExist) || (excludedTreatmentsExist && excludedTreatmentsList["Temp Basal"] == null) || (includedTreatmentsExist && includedTreatmentsList["Temp Basal"] != null && includedTreatmentsList["Temp Basal"] == true))
+				{
+					var spikeBasalsList:Array = TreatmentsManager.basalsList.concat();
+					spikeBasalsList.sortOn(["timestamp"], Array.NUMERIC | Array.DESCENDING);
+					
+					for (i = 0; i < spikeBasalsList.length; i++) 
+					{
+						var spikeBasal:Treatment = spikeBasalsList[i] as Treatment;
+						if (spikeBasal != null && spikeBasal.timestamp >= firstTreatmentTimestamp)
+						{
+							var responseBasalTreatment:Object = {};
+							responseBasalTreatment["_id"] = spikeBasal.ID;
+							responseBasalTreatment["created_at"] = nsFormatter.format(spikeBasal.timestamp).replace("000+0000", "000Z");
+							responseBasalTreatment.eventType = "Temp Basal";
+							responseBasalTreatment.notes = spikeBasal.note;
+							responseBasalTreatment.date = spikeBasal.timestamp;
+							if (spikeBasal.isBasalAbsolute || spikeBasal.type == Treatment.TYPE_MDI_BASAL) responseBasalTreatment.absolute = spikeBasal.basalAbsoluteAmount;
+							if (spikeBasal.isBasalRelative) responseBasalTreatment.percent = spikeBasal.basalPercentAmount;
+							if (spikeBasal.isBasalAbsolute || spikeBasal.isBasalRelative) responseBasalTreatment.duration = spikeBasal.basalDuration;
+							if (spikeBasal.type == Treatment.TYPE_MDI_BASAL || CommonSettings.getCommonSetting(CommonSettings.COMMON_SETTING_USER_TYPE_PUMP_OR_MDI) == "mdi")
+							{
+								var usedInsulin:Insulin = ProfileManager.getInsulin(spikeBasal.insulinID);
+								if (usedInsulin != null)
+								{
+									responseBasalTreatment.insulinName = usedInsulin.name;	
+									responseBasalTreatment.insulinType = usedInsulin.type;	
+									responseBasalTreatment.insulinID = usedInsulin.ID;
+									responseBasalTreatment.insulinDIA = usedInsulin.dia;
+								}
+							}
+							
+							treatmentsList.push(responseBasalTreatment);
+						}
+					}
+				}
+					
+				treatmentsList.sortOn(["date"], Array.NUMERIC | Array.DESCENDING);
 				response = SpikeJSON.stringify(treatmentsList);
 			}
 			

@@ -40,6 +40,7 @@ package ui
 	import ui.screens.MainSettingsScreen;
 	import ui.screens.MaintenanceScreen;
 	import ui.screens.NightscoutViewScreen;
+	import ui.screens.PebbleSettingsScreen;
 	import ui.screens.ProfileSettingsScreen;
 	import ui.screens.Screens;
 	import ui.screens.SensorScreen;
@@ -52,6 +53,7 @@ package ui
 	import ui.screens.TreatmentsSettingsScreen;
 	import ui.screens.WatchSettingsScreen;
 	import ui.screens.WidgetSettingsScreen;
+	import ui.screens.WorkflowSettingsScreen;
 	import ui.screens.data.AlarmNavigatorData;
 	import ui.screens.display.menu.MenuList;
 	
@@ -253,6 +255,16 @@ package ui
 			var IFTTTSettingsScreenItem:StackScreenNavigatorItem = new StackScreenNavigatorItem( IFTTTSettingsScreen );
 			IFTTTSettingsScreenItem.addPopEvent(Event.COMPLETE);
 			navigator.addScreen( Screens.SETTINGS_IFTTT, IFTTTSettingsScreenItem );
+			
+			/* Workflow Settings Screen */
+			var workflowSettingsScreenItem:StackScreenNavigatorItem = new StackScreenNavigatorItem( WorkflowSettingsScreen );
+			workflowSettingsScreenItem.addPopEvent(Event.COMPLETE);
+			navigator.addScreen( Screens.SETTINGS_WORKFLOW, workflowSettingsScreenItem );
+			
+			/* Pebble Settings Screen */
+			var pebbleSettingsScreenItem:StackScreenNavigatorItem = new StackScreenNavigatorItem( PebbleSettingsScreen );
+			pebbleSettingsScreenItem.addPopEvent(Event.COMPLETE);
+			navigator.addScreen( Screens.SETTINGS_PEBBLE, pebbleSettingsScreenItem );
 			
 			/* Help Screen */
 			var helpScreenItem:StackScreenNavigatorItem = new StackScreenNavigatorItem( HelpScreen );

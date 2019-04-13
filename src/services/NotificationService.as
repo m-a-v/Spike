@@ -106,6 +106,7 @@ package services
 		public static const ID_FOR_FAST_RISE_ALERT:int = 25;
 		public static const ID_FOR_FAST_DROP_ALERT:int = 26;
 		public static const ID_FOR_EXTENDED_BOLUS_ALERT:int = 27;
+		public static const ID_FOR_NEW_APP_UPDATE_ALERT:int = 28;
 		
 		public static const ID_FOR_ALERT_LOW_CATEGORY:String = "LOW_ALERT_CATEGORY";
 		public static const ID_FOR_ALERT_HIGH_CATEGORY:String = "HIGH_ALERT_CATEGORY";
@@ -361,6 +362,7 @@ package services
 				CalibrationService.instance.addEventListener(CalibrationServiceEvent.INITIAL_CALIBRATION_EVENT, updateBgNotification);
 				TransmitterService.instance.addEventListener(TransmitterServiceEvent.LAST_BGREADING_RECEIVED, updateBgNotification);
 				NightscoutService.instance.addEventListener(FollowerEvent.BG_READING_RECEIVED, updateBgNotification);
+				DexcomShareService.instance.addEventListener(FollowerEvent.BG_READING_RECEIVED, updateBgNotification);
 				Spike.instance.addEventListener(SpikeEvent.APP_IN_FOREGROUND, appInForeGround);
 				Notifications.service.register();
 				LocalSettings.instance.addEventListener(SettingsServiceEvent.SETTING_CHANGED, onLocalSettingsChanged);
@@ -558,6 +560,7 @@ package services
 			CalibrationService.instance.removeEventListener(CalibrationServiceEvent.INITIAL_CALIBRATION_EVENT, updateBgNotification);
 			TransmitterService.instance.removeEventListener(TransmitterServiceEvent.LAST_BGREADING_RECEIVED, updateBgNotification);
 			NightscoutService.instance.removeEventListener(FollowerEvent.BG_READING_RECEIVED, updateBgNotification);
+			DexcomShareService.instance.removeEventListener(FollowerEvent.BG_READING_RECEIVED, updateBgNotification);
 			Spike.instance.removeEventListener(SpikeEvent.APP_IN_FOREGROUND, appInForeGround);
 			LocalSettings.instance.removeEventListener(SettingsServiceEvent.SETTING_CHANGED, onLocalSettingsChanged);
 			CommonSettings.instance.removeEventListener(SettingsServiceEvent.SETTING_CHANGED, onCommonSettingsChanged);

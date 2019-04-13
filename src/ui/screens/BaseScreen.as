@@ -12,15 +12,18 @@ package ui.screens
 	import feathers.controls.Callout;
 	import feathers.controls.List;
 	import feathers.controls.PanelScreen;
+	import feathers.controls.ScrollContainer;
+	import feathers.controls.ScrollPolicy;
 	import feathers.events.FeathersEventType;
+	import feathers.layout.VerticalLayout;
 	import feathers.themes.BaseMaterialDeepGreyAmberMobileTheme;
 	import feathers.themes.MaterialDeepGreyAmberMobileThemeIcons;
 	
 	import starling.core.Starling;
 	import starling.display.DisplayObject;
 	import starling.display.Image;
-	import starling.display.Sprite;
 	import starling.events.Event;
+	import starling.events.ResizeEvent;
 	import starling.textures.Texture;
 	
 	import ui.AppInterface;
@@ -28,7 +31,6 @@ package ui.screens
 	import ui.screens.display.treatments.TreatmentsList;
 	
 	import utils.Constants;
-	import utils.DeviceInfo;
 	
 	public class BaseScreen extends PanelScreen
 	{
@@ -39,7 +41,6 @@ package ui.screens
 		protected var callout:Callout;
 		private var treatmentsList:List;
 		private var extraOptionsList:List;
-		private var iphone4DummyMarker:Sprite;
 		private var treatmentsEnabled:Boolean;
 		private var menuButtonTexture:Texture;
 		private var menuButtonImage:Image;
@@ -47,6 +48,12 @@ package ui.screens
 		private var moreButtonTexture:Texture;
 		private var treatmentsTexture:Texture;
 		private var treatmentsImage:Image;
+		private var treatmentsMenuContainer:ScrollContainer;
+		private var extraOptionsMenuContainer:ScrollContainer;
+		
+		/* Logical Variables */
+		private var isTreatmentsMenuOpened:Boolean = false;
+		private var isExtraOptionsMenuOpened:Boolean = false;
 		
 		public function BaseScreen()
 		{
@@ -88,7 +95,6 @@ package ui.screens
 			backButtonHandler = onBackButton;
 			Constants.mainMenuButton = menuButton;
 			
-			
 			/* Add more options to the header */
 			moreButtonTexture = MaterialDeepGreyAmberMobileThemeIcons.moreVerticalTexture;
 			moreButtonImage = new Image(moreButtonTexture);
@@ -98,7 +104,7 @@ package ui.screens
 			moreButton.addEventListener( Event.TRIGGERED, onMoreButtonTriggered );
 			moreButton.validate();
 			
-			if ((CommonSettings.getCommonSetting(CommonSettings.COMMON_SETTING_TREATMENTS_ENABLED) == "true" && CommonSettings.getCommonSetting(CommonSettings.COMMON_SETTING_TREATMENTS_ON_CHART_ENABLED) == "true") || !CGMBlueToothDevice.isFollower()) 
+			if ((CommonSettings.getCommonSetting(CommonSettings.COMMON_SETTING_TREATMENTS_ENABLED) == "true" && CommonSettings.getCommonSetting(CommonSettings.COMMON_SETTING_TREATMENTS_ON_CHART_ENABLED) == "true" && !CGMBlueToothDevice.isDexcomFollower()) || !CGMBlueToothDevice.isFollower()) 
 			{
 				/* Add treatments to the header */
 				treatmentsTexture = MaterialDeepGreyAmberMobileThemeIcons.addTexture;
@@ -127,6 +133,7 @@ package ui.screens
 		private function setupEventListeners():void
 		{
 			this.addEventListener(FeathersEventType.TRANSITION_IN_COMPLETE, onTransitionInComplete);
+			Starling.current.stage.addEventListener(starling.events.Event.RESIZE, onStarlingResize);
 		}
 		
 		/**
@@ -144,54 +151,66 @@ package ui.screens
 		
 		protected function onTreatmentButtonTriggered():void 
 		{
+			if (treatmentsMenuContainer != null) treatmentsMenuContainer.removeFromParent(true);
+			treatmentsMenuContainer = new ScrollContainer();
+			treatmentsMenuContainer.layout = new VerticalLayout();
+			treatmentsMenuContainer.horizontalScrollPolicy = ScrollPolicy.OFF;
+			
+			if (treatmentsList != null) treatmentsList.removeFromParent(true);
 			treatmentsList = new TreatmentsList();
 			treatmentsList.addEventListener(TreatmentsList.CLOSE, onCloseCallOut);
-			if (Constants.deviceModel == DeviceInfo.IPHONE_2G_3G_3GS_4_4S_ITOUCH_2_3_4 && treatmentsEnabled)
-			{
-				if (iphone4DummyMarker != null) iphone4DummyMarker.removeFromParent(true);
-				iphone4DummyMarker = new Sprite();
-				var globalpoint:Point = treatmentsButton.localToGlobal(new Point(treatmentsButton.width / 2, treatmentsButton.height / 2));
-				iphone4DummyMarker.x = globalpoint.x;
-				iphone4DummyMarker.y = globalpoint.y + 15;
-				Starling.current.stage.addChild(iphone4DummyMarker);
-				
-				callout = Callout.show( treatmentsList, iphone4DummyMarker );
-				callout.addEventListener(Event.CLOSE, onCloseCallOut);
-			}
-			else
-			{
-				callout = Callout.show( treatmentsList, treatmentsButton );
-				callout.addEventListener(Event.CLOSE, onCloseCallOut);
-			}
+			treatmentsMenuContainer.addChild(treatmentsList);
+			treatmentsMenuContainer.validate();
+			
+			var treatmentsCalloutPointOfOrigin:Number = treatmentsButton.localToGlobal(new Point(0, 0)).y + treatmentsButton.height;
+			var treatmentsContentOriginalHeight:Number = treatmentsList.height + 60;
+			var suggestedTreatmentsCalloutHeight:Number = Constants.stageHeight - treatmentsCalloutPointOfOrigin - 5;
+			var finalCalloutHeight:Number = treatmentsContentOriginalHeight > suggestedTreatmentsCalloutHeight ?  suggestedTreatmentsCalloutHeight : treatmentsContentOriginalHeight;
+			
+			callout = Callout.show( treatmentsMenuContainer, treatmentsButton );
+			callout.addEventListener(Event.CLOSE, onCloseCallOut);
+			
+			callout.height = finalCalloutHeight;
+			treatmentsMenuContainer.height = finalCalloutHeight - 50;
+			treatmentsMenuContainer.maxHeight = finalCalloutHeight - 50;
+			
+			isTreatmentsMenuOpened = true;
 		}
 		
 		protected function onMoreButtonTriggered():void 
 		{
+			if (extraOptionsMenuContainer != null) extraOptionsMenuContainer.removeFromParent(true);
+			extraOptionsMenuContainer = new ScrollContainer();
+			extraOptionsMenuContainer.layout = new VerticalLayout();
+			extraOptionsMenuContainer.horizontalScrollPolicy = ScrollPolicy.OFF;
+			
+			if (extraOptionsList != null) extraOptionsList.removeFromParent(true);
 			extraOptionsList = new ExtraOptionsList();
 			extraOptionsList.addEventListener(ExtraOptionsList.CLOSE, onCloseCallOut);
-			if (Constants.deviceModel == DeviceInfo.IPHONE_2G_3G_3GS_4_4S_ITOUCH_2_3_4)
-			{
-				if (iphone4DummyMarker != null) iphone4DummyMarker.removeFromParent(true);
-				iphone4DummyMarker = new Sprite();
-				var globalpoint:Point = moreButton.localToGlobal(new Point(moreButton.width / 2, moreButton.height / 2));
-				iphone4DummyMarker.x = globalpoint.x;
-				iphone4DummyMarker.y = globalpoint.y + 15;
-				Starling.current.stage.addChild(iphone4DummyMarker);
-				
-				callout = Callout.show( extraOptionsList, iphone4DummyMarker );
-				callout.addEventListener(Event.CLOSE, onCloseCallOut);
-			}
-			else
-			{
-				callout = Callout.show( extraOptionsList, moreButton );
-				callout.addEventListener(Event.CLOSE, onCloseCallOut);
-			}
+			extraOptionsMenuContainer.addChild(extraOptionsList);
+			extraOptionsMenuContainer.validate();
 			
-			Callout.stagePaddingRight = -5
+			var extraOptionsCalloutPointOfOrigin:Number = moreButton.localToGlobal(new Point(0, 0)).y + moreButton.height;
+			var extraOptionsContentOriginalHeight:Number = extraOptionsList.height + 60;
+			var suggestedExtraOptionsCalloutHeight:Number = Constants.stageHeight - extraOptionsCalloutPointOfOrigin - 5;
+			var finalCalloutHeight:Number = extraOptionsContentOriginalHeight > suggestedExtraOptionsCalloutHeight ?  suggestedExtraOptionsCalloutHeight : extraOptionsContentOriginalHeight;
+			
+			callout = Callout.show( extraOptionsMenuContainer, moreButton );
+			callout.addEventListener(Event.CLOSE, onCloseCallOut);
+			
+			callout.height = finalCalloutHeight;
+			Callout.stagePaddingRight = -5;
+			extraOptionsMenuContainer.height = finalCalloutHeight - 50;
+			extraOptionsMenuContainer.maxHeight = finalCalloutHeight - 50;
+			
+			isExtraOptionsMenuOpened = true;
 		}
 		
 		private function onCloseCallOut(e:Event):void
 		{
+			isTreatmentsMenuOpened = false;
+			isExtraOptionsMenuOpened = false;
+			
 			disposeOnScreenComponents();
 			
 			if (callout != null)
@@ -213,6 +232,37 @@ package ui.screens
 				dispatchEventWith( ScreenEvent.TOGGLE_MENU );
 		}
 		
+		private function onStarlingResize(event:ResizeEvent):void 
+		{
+			var pointOfOrigin:Number;
+			var contentOriginalHeight:Number;
+			var suggestedCalloutHeight:Number;
+			var finalCalloutHeight:Number;
+			
+			if (isTreatmentsMenuOpened && callout != null && treatmentsMenuContainer != null)
+			{
+				pointOfOrigin = treatmentsButton.localToGlobal(new Point(0, 0)).y + treatmentsButton.height;
+				contentOriginalHeight = treatmentsList.height + 60;
+				suggestedCalloutHeight = Constants.stageHeight - pointOfOrigin - 5;
+				finalCalloutHeight = contentOriginalHeight > suggestedCalloutHeight ?  suggestedCalloutHeight : contentOriginalHeight;
+				
+				callout.height = finalCalloutHeight;
+				treatmentsMenuContainer.height = finalCalloutHeight - 50;
+				treatmentsMenuContainer.maxHeight = finalCalloutHeight - 50;
+			}
+			else if (isExtraOptionsMenuOpened && callout != null && extraOptionsMenuContainer != null)
+			{
+				pointOfOrigin = moreButton.localToGlobal(new Point(0, 0)).y + moreButton.height;
+				contentOriginalHeight = extraOptionsList.height + 60;
+				suggestedCalloutHeight = Constants.stageHeight - pointOfOrigin - 5;
+				finalCalloutHeight = contentOriginalHeight > suggestedCalloutHeight ?  suggestedCalloutHeight : contentOriginalHeight;
+				
+				callout.height = finalCalloutHeight;
+				extraOptionsMenuContainer.height = finalCalloutHeight - 50;
+				extraOptionsMenuContainer.maxHeight = finalCalloutHeight - 50;
+			}
+		}
+		
 		protected function onTransitionInComplete(e:Event):void
 		{
 			//Meant to be overriden
@@ -231,6 +281,13 @@ package ui.screens
 				treatmentsList = null;
 			}
 			
+			if (treatmentsMenuContainer != null)
+			{
+				treatmentsMenuContainer.removeFromParent();
+				treatmentsMenuContainer.dispose();
+				treatmentsMenuContainer = null;
+			}
+			
 			if (extraOptionsList != null)
 			{
 				extraOptionsList.removeEventListener(ExtraOptionsList.CLOSE, onCloseCallOut);
@@ -239,15 +296,18 @@ package ui.screens
 				extraOptionsList = null;
 			}
 			
-			if (iphone4DummyMarker != null)
+			if (extraOptionsMenuContainer != null)
 			{
-				iphone4DummyMarker.removeFromParent(true);
-				iphone4DummyMarker = null;
+				extraOptionsMenuContainer.removeFromParent();
+				extraOptionsMenuContainer.dispose();
+				extraOptionsMenuContainer = null;
 			}
 		}
 		
 		override public function dispose():void
 		{
+			Starling.current.stage.removeEventListener(starling.events.Event.RESIZE, onStarlingResize);
+			
 			if (menuButtonTexture != null)
 			{
 				menuButtonTexture.dispose();
@@ -325,6 +385,13 @@ package ui.screens
 				treatmentsList = null;
 			}
 			
+			if (treatmentsMenuContainer != null)
+			{
+				treatmentsMenuContainer.removeFromParent();
+				treatmentsMenuContainer.dispose();
+				treatmentsMenuContainer = null;
+			}
+			
 			if (extraOptionsList != null)
 			{
 				extraOptionsList.removeEventListener(ExtraOptionsList.CLOSE, onCloseCallOut);
@@ -333,11 +400,11 @@ package ui.screens
 				extraOptionsList = null;
 			}
 			
-			if (iphone4DummyMarker != null)
+			if (extraOptionsMenuContainer != null)
 			{
-				iphone4DummyMarker.removeFromParent();
-				iphone4DummyMarker.dispose();
-				iphone4DummyMarker = null;
+				extraOptionsMenuContainer.removeFromParent();
+				extraOptionsMenuContainer.dispose();
+				extraOptionsMenuContainer = null;
 			}
 			
 			if (callout != null)

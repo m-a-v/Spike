@@ -14,6 +14,9 @@ package ui.chart.helpers
 	
 	import model.ModelLocator;
 	
+	import treatments.BasalRate;
+	import treatments.ProfileManager;
+	
 	import ui.InterfaceController;
 	
 	import utils.Constants;
@@ -21,6 +24,7 @@ package ui.chart.helpers
 	
 	[ResourceBundle("chartscreen")]
 	[ResourceBundle("transmitterscreen")]
+	[ResourceBundle("treatments")]
 
 	public class GlucoseFactory
 	{
@@ -550,6 +554,153 @@ package ui.chart.helpers
 				transmitterBattery = ModelLocator.resourceManagerInstance.getString('transmitterscreen','battery_unknown');	
 			
 			return { level: transmitterBattery, color: transmitterBatteryColor };
+		}
+		
+		public static function calculateAdvancedStats(readingsList:Array, timeInRangePercentage:Number):Object
+		{
+			var totalReadings:uint = readingsList.length;
+			
+			var GVI:Number = Number.NaN;
+			var PGS:Number = Number.NaN;
+			var TDC:Number = Number.NaN;
+			var TDCHourly:Number = Number.NaN;
+			var timeInT1:Number = Number.NaN;
+			var timeInT2:Number = Number.NaN;
+			
+			if (totalReadings > 0)
+			{
+				var lowTreshold:Number = Number(CommonSettings.getCommonSetting(CommonSettings.COMMON_SETTING_LOW_MARK));;
+				var highTreshold:Number = Number(CommonSettings.getCommonSetting(CommonSettings.COMMON_SETTING_HIGH_MARK));
+				var t1:Number = 6;
+				var t2:Number = 11;
+				var t1count:Number = 0;
+				var t2count:Number = 0;
+				var total:Number = 0;
+				var events:Number = 0;
+				var GVITotal:Number = 0;
+				var GVIIdeal:Number = 0;
+				var usedRecords:Number = 0;
+				var glucoseTotal:Number = 0;
+				var deltaTotal:Number = 0;
+				var daysTotal:Number = (readingsList[totalReadings - 1].timestamp - readingsList[0].timestamp) / TimeSpan.TIME_24_HOURS;
+				
+				for (var i:int = 0; i < totalReadings - 2; i++) 
+				{
+					var currentReading:Number = readingsList[i].calculatedValue;
+					var nextReading:Number = readingsList[i + 1].calculatedValue;
+					var delta:Number = Math.abs(nextReading - currentReading);
+					
+					events += 1;
+					usedRecords += 1;
+					deltaTotal += delta;
+					total += delta;
+					if (delta >= t1) t1count += 1;
+					if (delta >= t2) t2count += 1;
+					GVITotal += Math.sqrt(25 + Math.pow(delta, 2));  
+					glucoseTotal += currentReading;
+				}
+				
+				var GVIDelta:Number = Math.abs(readingsList[totalReadings-1].calculatedValue - readingsList[0].calculatedValue); //var GVIDelta:Number = Math.floor(readingsList[0], readingsList[totalReadings-1]);
+				GVIIdeal = Math.sqrt(Math.pow(usedRecords*5,2) + Math.pow(GVIDelta,2));
+				GVI = Math.round(GVITotal / GVIIdeal * 100) / 100;
+				var glucoseMean:Number = Math.floor(glucoseTotal / usedRecords);
+				var tirMultiplier:Number = timeInRangePercentage / 100.0;
+				PGS = Math.round(GVI * glucoseMean * (1-tirMultiplier) * 100) / 100;
+				TDC = deltaTotal / daysTotal;
+				TDCHourly = TDC / 24;
+				timeInT1 = Number(Math.round(100 * t1count / events).toFixed(1));
+				timeInT2 = Number(Math.round(100 * t2count / events).toFixed(1));
+				
+				if (CommonSettings.getCommonSetting(CommonSettings.COMMON_SETTING_DO_MGDL) != "true") 
+				{
+					TDC = TDC / 18.0182;
+					TDCHourly = TDCHourly / 18.0182;
+				}
+				
+				TDC = Math.round(TDC * 100) / 100;
+				TDCHourly = Math.round(TDCHourly * 100) / 100;
+			}
+			
+			return {
+				GVI: GVI,
+				PGS: PGS,
+				meanTotalDailyChange: TDC,
+				meanHourlyChange: TDCHourly,
+				timeInFluctuation: timeInT1,
+				timeInRapidFluctuation: timeInT2,
+				glucoseMean: glucoseMean
+			}
+		}
+		
+		public static function getCurrentBasalForPill():String
+		{
+			var userType:String = CommonSettings.getCommonSetting(CommonSettings.COMMON_SETTING_USER_TYPE_PUMP_OR_MDI);
+			var now:Number = new Date().valueOf();
+			var basalResult:String = "0.000" + (userType == "pump" ? "U" : ModelLocator.resourceManagerInstance.getString('treatments','basal_units_per_hour'));
+			
+			if (userType == "pump")
+			{
+				var pumpBasalProperties:Object = ProfileManager.getPumpBasalData(now, CGMBlueToothDevice.isFollower() && CommonSettings.getCommonSetting(CommonSettings.COMMON_SETTING_FOLLOWER_MODE) == "Nightscout", Number.NaN);
+				if (pumpBasalProperties != null)
+				{
+					var currentPumpBasal:Number = pumpBasalProperties.tempBasalAmount != null && !isNaN(pumpBasalProperties.tempBasalAmount) ? pumpBasalProperties.tempBasalAmount : 0;
+					var isTempBasal:Boolean = pumpBasalProperties.tempBasalTreatment != null;
+					
+					if (isTempBasal)
+					{
+						basalResult = "T: " + (Math.round(currentPumpBasal * 1000) / 1000) + "U";
+					}
+					else
+					{
+						basalResult = (Math.round(currentPumpBasal * 1000) / 1000) + "U";
+					}
+				}
+			}
+			else if (userType == "mdi")
+			{
+				var mdiBasalProperties:Object = ProfileManager.getMDIBasalData(now);
+				if (mdiBasalProperties != null)
+				{
+					var currentMDIBasal:Number = mdiBasalProperties.mdiBasalAmount != null && !isNaN(mdiBasalProperties.mdiBasalAmount) ? mdiBasalProperties.mdiBasalAmount : 0;
+					var currentMDIDuration:Number = mdiBasalProperties.mdiBasalDuration != null && !isNaN(mdiBasalProperties.mdiBasalDuration) ? mdiBasalProperties.mdiBasalDuration : 1;
+					basalResult = (Math.round((currentMDIBasal / (currentMDIDuration / 60)) * 1000) / 1000) + ModelLocator.resourceManagerInstance.getString('treatments','basal_units_per_hour');
+				}
+			}
+			
+			return basalResult;
+		}
+		
+		public static function getTotalDailyBasalRate():Number
+		{
+			var userBasalRates:Array = ProfileManager.basalRatesList;
+			var total:Number = 0;
+			
+			for (var i:Number = 0, len:uint = userBasalRates.length; i < len; i++) 
+			{
+				var basalRate1:BasalRate = userBasalRates[i];
+				var basalRate2:BasalRate = userBasalRates[(i+1)%len];
+				
+				if (basalRate1 != null && basalRate2 != null)
+				{
+					var time1:Date = new Date();
+					time1.hours = basalRate1.startHours;
+					time1.minutes = basalRate1.startMinutes;
+					time1.seconds = 0;
+					time1.milliseconds = 0;
+					
+					var time2:Date = new Date();
+					time2.hours = i < len - 1 ? basalRate2.startHours : 23;
+					time2.minutes = i < len - 1 ? basalRate2.startMinutes : 59;
+					time2.seconds = 0;
+					time2.milliseconds = 0;
+					
+					var value:Number = basalRate1.basalRate;
+					
+					total += (TimeSpan.fromDates(time1, time2).totalMinutes + (i < len - 1 ? 0 : 1)) * value / 60;
+				}
+			}
+			
+			return total;
 		}
 	}
 }
